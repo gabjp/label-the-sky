@@ -42,7 +42,7 @@ for split in ['train', 'val', 'test']:
             f'{dataset_name}_{n_channels}_y_{split}.npy'),
         y)
     print(f'saved {dataset_name}_{n_channels}_y_{split}.npy', y.shape)
-    im_paths = [os.path.join(data_dir, i.split('.')[0], i + ext) for i in ids]
+    im_paths = [os.path.join(data_dir, i + ext) for i in ids]
     X = np.zeros((len(ids),) + (32, 32, n_channels), dtype=dtype)
     for i, path in enumerate(im_paths):
         X[i, :] = read_fn(path)
