@@ -23,7 +23,7 @@ def get_dataset(df, target='class', n_bands=12, filters=None):
     if filters is not None:
         for key, val in filters.items():
             df = df[df[key].between(val[0], val[1])]
-    ids = df.id.values
+    ids = df.ID.values
 
     if target=='class':
         y = df['class'].apply(lambda c: CLASS_MAP[c]).values
