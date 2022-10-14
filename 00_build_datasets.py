@@ -1,4 +1,4 @@
-from _datagen import get_dataset
+from label_the_sky.preprocessing._datagen import get_dataset
 from pandas import read_csv
 import numpy as np
 import os
@@ -21,8 +21,8 @@ if n_channels not in [3, 12]:
 if target not in ['class', 'magnitudes']:
     raise ValueError('target must be: class, magnitudes')
 
-base_dir = os.environ['DATA_PATH']
-data_dir = 'crops_rgb32' if n_channels==3 else 'crops_calib'
+base_dir = os.path.join(os.environ['HOME'], 'raw_fits')
+data_dir = 'crops_rgb32' if n_channels==3 else 'all_objects'
 data_dir = os.path.join(base_dir, data_dir)
 output_dir = os.path.join(os.environ['HOME'], 'data')
 

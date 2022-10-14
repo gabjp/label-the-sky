@@ -30,9 +30,9 @@ def get_dataset(df, target='class', n_bands=12, filters=None):
         y = to_categorical(y, num_classes=3)
     elif target=='magnitudes':
         if n_bands==5:
-            y = df[['u','g','r','i','z']].values
+            y = df[['u_iso','g_iso','r_iso','i_iso','z_iso']].values
         else:
-            y = df[['u','f378','f395','f410','f430','g','f515','r','f660','i','f861','z']].values
+            y = df[['u_iso','f378_iso','f395_iso','f410_iso','f430_iso','g_iso','f515_iso','r_iso','f660_iso','i_iso','f861_iso','z_iso']].values
     elif target=='mockedmagnitudes':
         if n_bands==5:
             y = df[['u_mock','g_mock','r_mock','i_mock','z_mock']].values
