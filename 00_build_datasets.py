@@ -49,12 +49,7 @@ for split in ['train', 'val', 'test']:
         for i, path in enumerate(im_paths):
 
             im_tmp =  read_fn(path) #(12,32,32)
-            aux = np.zeros(32,32,12)
-
-            for k in range(0,12):
-                aux[:,:,k] = im_tmp[k,:,:]
-
-            X[i, :] = aux        #(32,32,12)
+            X[i, :] = np.transpose(im_tmp, (1,2,0))        #(32,32,12)
             pbar.update(1)
 
     np.save(
