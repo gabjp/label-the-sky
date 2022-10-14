@@ -32,7 +32,7 @@ def get_dataset(df, target='class', n_bands=12, filters=None):
         if n_bands==5:
             y = df[['u_iso','g_iso','r_iso','i_iso','z_iso']].values
         else:
-            y = df[['u_iso','f378_iso','f395_iso','f410_iso','f430_iso','g_iso','f515_iso','r_iso','f660_iso','i_iso','f861_iso','z_iso']].values
+            y = df[['u_iso','J0378_iso','J0395_iso','J0410_iso','J0430_iso','g_iso','J0515_iso','r_iso','J0660_iso','i_iso','J0861_iso','z_iso']].values
     elif target=='mockedmagnitudes':
         if n_bands==5:
             y = df[['u_mock','g_mock','r_mock','i_mock','z_mock']].values
