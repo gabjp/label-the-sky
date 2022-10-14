@@ -4,6 +4,7 @@ import numpy as np
 import os
 from skimage import io
 import sys
+from tqdm import tqdm 
 
 
 if len(sys.argv) != 4:
@@ -44,8 +45,18 @@ for split in ['train', 'val', 'test']:
     print(f'saved {dataset_name}_{n_channels}_y_{split}.npy', y.shape)
     im_paths = [os.path.join(data_dir, i + ext) for i in ids]
     X = np.zeros((len(ids),) + (32, 32, n_channels), dtype=dtype)
-    for i, path in enumerate(im_paths):
-        X[i, :] = read_fn(path)
+    with tqdm(total = len(df_tmp)) as pbar:
+        for i, path in enumerate(im_paths):
+
+            im_tmp =  read_fn(path) #(12,32,32)
+            aux = np.zeros(32,32,12)
+
+            for k in range(0,12):
+                aux[:,:,k] = im_tmp[k,:,:]
+
+            X[i, :] = aux        #(32,32,12)
+            pbar.update(1)
+
     np.save(
         os.path.join(
             output_dir,
