@@ -65,6 +65,8 @@ else:
 trainer.dump_history('history')
 print('--- minutes taken:', int((time() - start) / 60))
 
+trainer.pick_best_model()
+
 if dataset_mode == 'full':
     print('loading best model')
     trainer.load_weights(os.path.join(base_dir, 'trained_models', model_name+'.h5'))
