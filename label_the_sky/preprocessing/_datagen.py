@@ -26,7 +26,7 @@ def get_dataset(df, target='class', n_bands=12, filters=None):
     ids = df.ID.values
 
     if target=='class':
-        y = df['class'].apply(lambda c: CLASS_MAP[c]).values
+        y = df['target'].apply(lambda c: CLASS_MAP[c]).values
         y = to_categorical(y, num_classes=3)
     elif target=='magnitudes':
         if n_bands==5:
