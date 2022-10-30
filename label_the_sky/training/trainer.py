@@ -235,6 +235,18 @@ class Trainer:
                 layer.trainable = False
 
         opt = Adam(lr=learning_rate)
+        # Here, I'll try to add an r2 regularization. (Please don't break)
+
+        for i in range(len(self.model.layers)):
+            if isinstance(self.model.layers[i], tf.keras.layers.Conv2D) or isinstance(self.model.layers[i], tf.keras.layers.Dense):
+                print('Adding regularizer to layer {}'.format(self.model.layers[i].name))
+                self.model.layers[i].kernel_regularizer = tf.keras.regularizers.l2(0.01)
+
+        model_json = self.model.to_json()
+        self.model = tf.keras.models.model_from_json(model_json)
+        self.model.load_weights(self.weights, by_name=True, skip_mismatch=True)
+
+        # Changes end here
         self.model.compile(loss=self.loss, optimizer=opt, metrics=self.metrics)
 
     def build_top_clf(self, inpt_dim, learning_rate=1e-4):
@@ -314,16 +326,6 @@ class Trainer:
             Xp_val = self.preprocess_input(X_val)
         yp_train = self.preprocess_output(y_train)
         yp_val = self.preprocess_output(y_val)
-
-        # Here, I'll try to add an r2 regularization. (Please don't break)
-
-
-        for i in range(len(self.model.layers)):
-            if isinstance(self.model.layers[i], tf.keras.layers.Conv2D) or isinstance(self.model.layers[i], tf.keras.layers.Dense):
-                print('Adding regularizer to layer {}'.format(self.model.layers[i].name))
-                self.model.layers[i].kernel_regularizer = tf.keras.regularizers.l2(0.01)
-
-        # Changes end here
 
         if mode=='from_scratch':
             history = self.from_scratch(Xp_train, yp_train, Xp_val, yp_val, epochs, runs)
