@@ -315,6 +315,16 @@ class Trainer:
         yp_train = self.preprocess_output(y_train)
         yp_val = self.preprocess_output(y_val)
 
+        # Here, I'll try to add an r2 regularization. (Please don't break)
+
+
+        for i in range(len(self.model.layers)):
+            if isinstance(self.model.layers[i], tf.keras.layers.Conv2D) or isinstance(self.model.layers[i], tf.keras.layers.Dense):
+                print('Adding regularizer to layer {}'.format(self.model.layers[i].name))
+                self.model.layers[i].kernel_regularizer = tf.keras.regularizers.l2(0.001)
+
+        # Changes end here
+
         if mode=='from_scratch':
             history = self.from_scratch(Xp_train, yp_train, Xp_val, yp_val, epochs, runs)
         elif mode=='finetune':
