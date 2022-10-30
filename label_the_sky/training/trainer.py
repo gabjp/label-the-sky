@@ -240,7 +240,7 @@ class Trainer:
         for i in range(len(self.model.layers)):
             if isinstance(self.model.layers[i], tf.keras.layers.Conv2D) or isinstance(self.model.layers[i], tf.keras.layers.Dense):
                 print('Adding regularizer to layer {}'.format(self.model.layers[i].name))
-                self.model.layers[i].kernel_regularizer = tf.keras.regularizers.l2(0.01)
+                self.model.layers[i].kernel_regularizer = tf.keras.regularizers.l2(0.001)
 
         model_json = self.model.to_yaml()
         self.model = tf.keras.models.model_from_yaml(model_json)
