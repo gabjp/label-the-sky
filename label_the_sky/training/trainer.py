@@ -213,9 +213,9 @@ class Trainer:
         x = GlobalAveragePooling2D()(x)
         x = Dense(
             1024,
-            activation=LeakyReLU(),
             kernel_initializer='glorot_uniform',
             kernel_constraint=self.max_norm)(x)
+        x = LeakyReLU()(x)
 
         # top layer
         y = Dropout(0.5)(x)
