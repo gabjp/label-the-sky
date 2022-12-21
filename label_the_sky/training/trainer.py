@@ -200,7 +200,7 @@ class Trainer:
         architecture_fn = BACKBONE_FN.get(self.backbone)
         weights0 = 'imagenet' if self.weights == 'imagenet' else None
         model = architecture_fn(
-            input_shape= (32,32,3) if self.weights == 'imagenet' else self.input_shape,
+            input_shape = self.input_shape,
             include_top=False,
             weights=weights0,
             backend=tf.keras.backend,
@@ -208,15 +208,6 @@ class Trainer:
             models=tf.keras.models,
             utils=tf.keras.utils
         )
-
-        model.summary()
-        print(model.layers[1].get_config())
-
-        if self.weights == 'imagenet' and self.input_shape[2] == 12:
-            new_model=tf.keras.Sequential([tf.keras.Input(shape=(32,32,12))])
-            for lay in model.layers[1:]:
-                new_model.add(lay)
-            model = new_model
 
         x = model.output
         x = GlobalAveragePooling2D()(x)
