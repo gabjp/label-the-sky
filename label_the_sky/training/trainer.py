@@ -210,7 +210,7 @@ class Trainer:
         )
 
         if self.weights == 'imagenet' and self.input_shape[2] == 12:
-            new_model=tf.keras.Sequential(tf.keras.Input(shape=(32,32,12)))
+            new_model=tf.keras.Sequential([tf.keras.Input(shape=(32,32,12))])
             for lay in model.layers[1:]:
                 new_model.add(lay)
             model = new_model
