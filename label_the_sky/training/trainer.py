@@ -210,7 +210,7 @@ class Trainer:
         )
 
         model.summary()
-        print(model.layers[0,1])
+        print(model.layers[1])
 
         if self.weights == 'imagenet' and self.input_shape[2] == 12:
             new_model=tf.keras.Sequential([tf.keras.Input(shape=(32,32,12))])
