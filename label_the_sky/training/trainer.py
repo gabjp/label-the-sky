@@ -133,7 +133,7 @@ class Trainer:
         if self.output_type == 'class':
             self.activation = 'softmax'
             self.loss = 'categorical_crossentropy'
-            self.metrics = ['accuracy']
+            self.metrics = ['accuracy'] 
             self.n_outputs = 3
         else:
             self.activation = relu_saturated
@@ -237,15 +237,15 @@ class Trainer:
         opt = Adam(lr=learning_rate)
         # Here, I'll try to add an r2 regularization. (Please don't break)
         # l2 best = 0.0007
+        if self.output_type == 'class':
+            for i in range(len(self.model.layers)):
+                if isinstance(self.model.layers[i], tf.keras.layers.Conv2D) or isinstance(self.model.layers[i], tf.keras.layers.Dense):
+                    print('Adding regularizer to layer {}'.format(self.model.layers[i].name))
+                    self.model.layers[i].kernel_regularizer = tf.keras.regularizers.l2(0.0007)
 
-        for i in range(len(self.model.layers)):
-            if isinstance(self.model.layers[i], tf.keras.layers.Conv2D) or isinstance(self.model.layers[i], tf.keras.layers.Dense):
-                print('Adding regularizer to layer {}'.format(self.model.layers[i].name))
-                self.model.layers[i].kernel_regularizer = tf.keras.regularizers.l2(0.0007)
-
-        model_json = self.model.to_yaml()
-        self.model = tf.keras.models.model_from_yaml(model_json)
-        self.model.load_weights(self.weights, by_name=True, skip_mismatch=True)
+            model_json = self.model.to_yaml()
+            self.model = tf.keras.models.model_from_yaml(model_json)
+            self.model.load_weights(self.weights, by_name=True, skip_mismatch=True)
 
         # Changes end here
         self.model.compile(loss=self.loss, optimizer=opt, metrics=self.metrics)
