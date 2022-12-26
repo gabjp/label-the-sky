@@ -16,6 +16,7 @@ from tensorflow.keras.constraints import max_norm
 from tensorflow.keras.layers import Input, Dense, Dropout, GlobalAveragePooling2D, LeakyReLU
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
+from keras import backend as K
 
 from label_the_sky.training.callbacks import TimeHistory
 
@@ -93,6 +94,16 @@ def set_random_seeds():
     #     intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
     # sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
     # K.set_session(sess)
+
+
+class CustomAccuracy(tf.keras.losses.Loss):
+  def __init__(self):
+    super().__init__()
+    self.mae = tf.keras.losses.MeanAbsoluteError()
+  def call(self, y_true, y_pred):
+    mvalue = 99/MAG_MAX
+    mask = K.cast(K.not_equal(y_true, mvalue), K.floatx())
+    return self.mae(y_true*mask, y_pred*mask)
 
 
 class Trainer:
