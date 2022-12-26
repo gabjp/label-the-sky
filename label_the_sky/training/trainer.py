@@ -96,7 +96,7 @@ def set_random_seeds():
     # K.set_session(sess)
 
 
-class CustomAccuracy(tf.keras.losses.Loss):
+class CustomMAE(tf.keras.losses.Loss):
   def __init__(self):
     super().__init__()
     self.mae = tf.keras.losses.MeanAbsoluteError()
@@ -148,7 +148,7 @@ class Trainer:
             self.n_outputs = 3
         else:
             self.activation = relu_saturated
-            self.loss = 'mae'
+            self.loss = CustomMAE() #'mae'
             self.metrics = None
             self.n_outputs = 12 if self.n_channels != 5 else 5
 
