@@ -101,7 +101,7 @@ class CustomMAE(tf.keras.losses.Loss):
     super().__init__()
     self.mae = tf.keras.losses.MeanAbsoluteError()
   def call(self, y_true, y_pred):
-    y_pred = np.array([y_pred[i] if y_true[i] != 99/MAG_MAX else y_true[i] for i in range(y_pred.shape[0])])
+    y_pred = np.array([y_pred[i] if y_true[i] != 99/MAG_MAX else y_true[i] for i in range(y_pred.shape[1])])
     return self.mae(y_true, y_pred)
 
 
