@@ -147,7 +147,7 @@ class Trainer:
             self.metrics = ['accuracy'] 
             self.n_outputs = 3
         else:
-            self.activation = 'relu' #relu_saturated
+            self.activation = relu_saturated
             self.loss = CustomMAE() #'mae'
             self.metrics = None
             self.n_outputs = 12 if self.n_channels != 5 else 5
@@ -248,7 +248,7 @@ class Trainer:
         opt = Adam(lr=learning_rate)
         # Here, I'll try to add an r2 regularization. (Please don't break)
         # l2 best = 0.0007
-        if self.output_type == 'class' or self.output_type == 'magnitudes':
+        if self.output_type == 'class':
             for i in range(len(self.model.layers)):
                 if isinstance(self.model.layers[i], tf.keras.layers.Conv2D) or isinstance(self.model.layers[i], tf.keras.layers.Dense):
                     print('Adding regularizer to layer {}'.format(self.model.layers[i].name))
