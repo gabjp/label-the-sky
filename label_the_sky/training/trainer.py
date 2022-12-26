@@ -248,7 +248,7 @@ class Trainer:
         opt = Adam(lr=learning_rate)
         # Here, I'll try to add an r2 regularization. (Please don't break)
         # l2 best = 0.0007
-        if self.output_type == 'class':
+        if self.output_type == 'class' or self.output_type == 'magnitudes':
             for i in range(len(self.model.layers)):
                 if isinstance(self.model.layers[i], tf.keras.layers.Conv2D) or isinstance(self.model.layers[i], tf.keras.layers.Dense):
                     print('Adding regularizer to layer {}'.format(self.model.layers[i].name))
