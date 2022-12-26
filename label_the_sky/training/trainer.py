@@ -95,6 +95,16 @@ def set_random_seeds():
     # K.set_session(sess)
 
 
+class CustomMAE(tf.keras.losses.Loss):
+    # MAE that supports missing values
+  def __init__(self):
+    super().__init__()
+    self.mae = tf.keras.losses.MeanAbsoluteError()
+  def call(self, y_true, y_pred):
+    y_pred = np.array([y_pred[i] if y_true[i] != 99/MAG_MAX else y_true[i] for i in range(len(y_pred))])
+    return self.mae(y_true, y_pred)
+
+
 class Trainer:
     def __init__(self, backbone, n_channels, output_type, base_dir, weights, model_name, save_checkpoints=True):
         if backbone not in BACKBONES:
@@ -137,7 +147,7 @@ class Trainer:
             self.n_outputs = 3
         else:
             self.activation = relu_saturated
-            self.loss = 'mae'
+            self.loss = CustomMAE() #'mae' # Uncomment to go back to default MAE implementation
             self.metrics = None
             self.n_outputs = 12 if self.n_channels != 5 else 5
 
