@@ -16,7 +16,7 @@ from tensorflow.keras.constraints import max_norm
 from tensorflow.keras.layers import Input, Dense, Dropout, GlobalAveragePooling2D, LeakyReLU
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
-from keras import backend as K
+from tensorflow.keras import backend as K
 
 from label_the_sky.training.callbacks import TimeHistory
 
