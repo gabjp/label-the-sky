@@ -147,7 +147,7 @@ class Trainer:
             self.metrics = ['accuracy'] 
             self.n_outputs = 3
         else:
-            self.activation = relu_saturated
+            self.activation = 'relu' #relu_saturated
             self.loss = CustomMAE() #'mae'
             self.metrics = None
             self.n_outputs = 12 if self.n_channels != 5 else 5
