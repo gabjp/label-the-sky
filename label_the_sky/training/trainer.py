@@ -393,7 +393,7 @@ class Trainer:
 
         for run in range(runs):
             self.run = f'{run}{run_suffix}'
-            self.build_model(learning_rate=1e-3) # increased learning rate from 1e-4 to 1e-3
+            self.build_model(learning_rate=1e-5) # increased learning rate from 1e-4 to 1e-3
             self.set_callbacks()
             history = self.model.fit(
                 X_train, y_train,
