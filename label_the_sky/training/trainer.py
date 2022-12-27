@@ -96,6 +96,43 @@ def set_random_seeds():
     # K.set_session(sess)
 
 
+def multify_weights(kernel, out_channels):
+  mean_1d = np.mean(kernel, axis=-2).reshape(kernel[:,:,-1:,:].shape)
+  tiled = np.tile(mean_1d, (out_channels, 1))
+  return(tiled)
+
+
+def copy_weights_tl(model_orig, custom_model, layer_modify):
+  layer_to_modify = [layer_modify]
+  input_channel = 12
+
+  conf = custom_model.get_config()
+  layer_names = [conf['layers'][x]['name'] for x in range(len(conf['layers']))]
+
+  for layer in model_orig.layers:
+    if layer.name in layer_names:
+      if layer.get_weights() != []:
+        target_layer = custom_model.get_layer(layer.name)
+
+        if layer.name in layer_to_modify:    
+          kernels = layer.get_weights()[0]
+          biases  = layer.get_weights()[1]
+
+          kernels_extra_channel = np.concatenate((kernels,
+                                                  multify_weights(kernels, input_channel - 3)),
+                                                  axis=-2)
+                                                  
+          target_layer.set_weights([kernels_extra_channel, biases])
+          target_layer.trainable = False
+
+        else:
+          target_layer.set_weights(layer.get_weights())
+          target_layer.trainable = False
+
+# multidy_wights and copy_weights_tl from: 
+# https://towardsdatascience.com/implementing-transfer-learning-from-rgb-to-multi-channel-imagery-f87924679166
+
+
 class CustomMAE(tf.keras.losses.Loss):
   def __init__(self):
     super().__init__()
@@ -210,15 +247,33 @@ class Trainer:
 
         architecture_fn = BACKBONE_FN.get(self.backbone)
         weights0 = 'imagenet' if self.weights == 'imagenet' else None
-        model = architecture_fn(
-            input_shape = self.input_shape,
-            include_top=False,
-            weights=weights0,
-            backend=tf.keras.backend,
-            layers=tf.keras.layers,
-            models=tf.keras.models,
-            utils=tf.keras.utils
-        )
+
+        if self.weights == 'imagenet' and self.n_channels == 12:
+            p_net = architecture_fn(
+                input_shape = (32,32,3),
+                include_top=False,
+                weights=weights0,
+                backend=tf.keras.backend,
+                layers=tf.keras.layers,
+                models=tf.keras.models,
+                utils=tf.keras.utils
+            )
+            config = p_net.get_config()
+            config["layers"][0]["config"]["batch_input_shape"] = (None, 32, 32, 12)
+            model = tf.keras.models.Model.from_config(config)
+            f_conv =  model.get_layer(index=1)
+            copy_weights_tl(p_net, model, f_conv)
+
+        else:
+            model = architecture_fn(
+                input_shape = self.input_shape,
+                include_top=False,
+                weights=weights0,
+                backend=tf.keras.backend,
+                layers=tf.keras.layers,
+                models=tf.keras.models,
+                utils=tf.keras.utils
+            )
 
         x = model.output
         x = GlobalAveragePooling2D()(x)
