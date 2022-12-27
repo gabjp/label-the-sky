@@ -6,8 +6,8 @@ from label_the_sky.training.trainer import Trainer, set_random_seeds
 
 set_random_seeds()
 
-if len(sys.argv) != 8:
-    print('usage: python {} <dataset> <backbone> <pretraining_dataset> <n_channels> <finetune> <dataset_mode> <timestamp>'.format(
+if len(sys.argv) != 9:
+    print('usage: python {} <dataset> <backbone> <pretraining_dataset> <n_channels> <finetune> <dataset_mode> <timestamp> <l2>'.format(
         sys.argv[0]))
     exit(1)
 
@@ -18,6 +18,7 @@ n_channels = int(sys.argv[4])
 finetune = True if sys.argv[5]=='1' else False
 dataset_mode = sys.argv[6]
 timestamp = sys.argv[7]
+l2 = None if sys.argv[8] == '0' else float(sys.argv[8])
 
 if dataset_mode not in ['lowdata', 'full']:
     raise Exception('dataset_mode must be: lowdata, full')
@@ -39,7 +40,7 @@ trainer = Trainer(
     base_dir=base_dir,
     weights=weights_file,
     model_name=model_name,
-    l2 = 0.0007 # Change to None to turn off
+    l2 = l2 # Change to None to turn off
 )
 
 print('loading data')
