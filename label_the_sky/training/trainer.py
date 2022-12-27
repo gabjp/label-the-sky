@@ -314,7 +314,7 @@ class Trainer:
             model_json = self.model.to_yaml()
             self.model.save_weights("./temp_weights")
             self.model = tf.keras.models.model_from_yaml(model_json)
-            self.model.load_weights("./temp_weights", by_name=False, skip_mismatch=True)
+            self.model.load_weights("./temp_weights", by_name=False, skip_mismatch=False)
             os.remove("./temp_weights")
 
         # Changes end here
