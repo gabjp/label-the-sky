@@ -113,7 +113,6 @@ def copy_weights_tl(model_orig, custom_model, layer_modify):
     if layer.name in layer_names:
       if layer.get_weights() != []:
         target_layer = custom_model.get_layer(layer.name)
-        target_layer.kernel_regularizer = tf.keras.regularizers.l2(0.0007) # Add regularizer
         print(f"Adding regularizer to: {layer.name}")
 
         if layer.name in layer_to_modify:    
@@ -146,7 +145,7 @@ class CustomMAE(tf.keras.losses.Loss):
 
 
 class Trainer:
-    def __init__(self, backbone, n_channels, output_type, base_dir, weights, model_name, save_checkpoints=True):
+    def __init__(self, backbone, n_channels, output_type, base_dir, weights, model_name, save_checkpoints=True, l2=None):
         if backbone not in BACKBONES:
             raise ValueError('backbone should be one of %s, but %s was given' % (
                 BACKBONES, backbone))
@@ -168,6 +167,7 @@ class Trainer:
         self.weights = weights
         self.model_name = model_name
         self.save_checkpoints = save_checkpoints
+        self.l2=l2
 
         self.clf = None
         self.history = None
@@ -305,15 +305,17 @@ class Trainer:
         opt = Adam(lr=learning_rate)
         # Here, I'll try to add an r2 regularization. (Please don't break)
         # l2 best = 0.0007
-        if self.output_type == 'class' and self.weights != "imagenet":
+        if self.l2 != None:
             for i in range(len(self.model.layers)):
                 if isinstance(self.model.layers[i], tf.keras.layers.Conv2D) or isinstance(self.model.layers[i], tf.keras.layers.Dense):
                     print('Adding regularizer to layer {}'.format(self.model.layers[i].name))
-                    self.model.layers[i].kernel_regularizer = tf.keras.regularizers.l2(0.0007)
+                    self.model.layers[i].kernel_regularizer = tf.keras.regularizers.l2(self.l2)
 
             model_json = self.model.to_yaml()
+            self.model.save_weights("./temp_weights")
             self.model = tf.keras.models.model_from_yaml(model_json)
-            self.model.load_weights(self.weights, by_name=True, skip_mismatch=True)
+            self.model.load_weights("./temp_weights", by_name=True, skip_mismatch=True)
+            os.remove("./temp_weights")
 
         # Changes end here
         self.model.compile(loss=self.loss, optimizer=opt, metrics=self.metrics)

@@ -38,7 +38,8 @@ trainer = Trainer(
     output_type='class',
     base_dir=base_dir,
     weights=weights_file,
-    model_name=model_name
+    model_name=model_name,
+    l2 = 0.0007 # Change to None to turn off
 )
 
 print('loading data')
