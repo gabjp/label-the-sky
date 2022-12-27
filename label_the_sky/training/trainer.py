@@ -312,10 +312,10 @@ class Trainer:
                     self.model.layers[i].kernel_regularizer = tf.keras.regularizers.l2(self.l2)
 
             model_json = self.model.to_yaml()
-            self.model.save_weights("./temp_weights")
+            self.model.save_weights("./temp_weights.h5")
             self.model = tf.keras.models.model_from_yaml(model_json)
-            self.model.load_weights("./temp_weights", by_name=False, skip_mismatch=False)
-            os.remove("./temp_weights")
+            self.model.load_weights("./temp_weights.h5", by_name=False, skip_mismatch=False)
+            os.remove("./temp_weights.h5")
 
         # Changes end here
         self.model.compile(loss=self.loss, optimizer=opt, metrics=self.metrics)
