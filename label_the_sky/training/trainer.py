@@ -113,6 +113,8 @@ def copy_weights_tl(model_orig, custom_model, layer_modify):
     if layer.name in layer_names:
       if layer.get_weights() != []:
         target_layer = custom_model.get_layer(layer.name)
+        target_layer.kernel_regularizer = tf.keras.regularizers.l2(0.0007) # Add regularizer
+        print(f"Adding regularizer to: {layer.name}")
 
         if layer.name in layer_to_modify:    
           kernels = layer.get_weights()[0]
@@ -303,7 +305,7 @@ class Trainer:
         opt = Adam(lr=learning_rate)
         # Here, I'll try to add an r2 regularization. (Please don't break)
         # l2 best = 0.0007
-        if self.output_type == 'class':
+        if self.output_type == 'class' and self.weights != "imagenet":
             for i in range(len(self.model.layers)):
                 if isinstance(self.model.layers[i], tf.keras.layers.Conv2D) or isinstance(self.model.layers[i], tf.keras.layers.Dense):
                     print('Adding regularizer to layer {}'.format(self.model.layers[i].name))
