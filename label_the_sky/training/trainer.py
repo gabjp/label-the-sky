@@ -261,7 +261,7 @@ class Trainer:
             config = p_net.get_config()
             config["layers"][0]["config"]["batch_input_shape"] = (None, 32, 32, 12)
             model = tf.keras.models.Model.from_config(config)
-            f_conv =  model.get_layer(index=1)
+            f_conv =  model.get_layer(index=1).name
             copy_weights_tl(p_net, model, f_conv)
 
         else:
