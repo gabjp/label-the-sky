@@ -126,11 +126,11 @@ def copy_weights_tl(model_orig, custom_model, layer_modify):
                                                   axis=-2)
                                                   
           target_layer.set_weights([kernels_extra_channel, biases])
-          target_layer.trainable = False
+          #target_layer.trainable = False
 
         else:
           target_layer.set_weights(layer.get_weights())
-          target_layer.trainable = False
+          #target_layer.trainable = False
 
 # multidy_wights and copy_weights_tl from: 
 # https://towardsdatascience.com/implementing-transfer-learning-from-rgb-to-multi-channel-imagery-f87924679166
