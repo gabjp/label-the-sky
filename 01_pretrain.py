@@ -1,6 +1,7 @@
 import os
 import sys
 from time import time
+print('oi')
 
 from label_the_sky.training.trainer import Trainer, set_random_seeds
 
