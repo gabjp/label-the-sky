@@ -315,9 +315,9 @@ class Trainer:
                     print('Adding regularizer to layer {}'.format(self.model.layers[i].name))
                     self.model.layers[i].kernel_regularizer = tf.keras.regularizers.l2(self.l2)
 
-            model_json = self.model.to_yaml()
+            model_json = self.model.to_json()
             self.model.save_weights("./temp_weights.h5")
-            self.model = tf.keras.models.model_from_yaml(model_json)
+            self.model = tf.keras.models.model_from_json(model_json)
             self.model.load_weights("./temp_weights.h5", by_name=False, skip_mismatch=False)
             os.remove("./temp_weights.h5")
 
