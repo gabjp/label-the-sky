@@ -311,8 +311,8 @@ class Trainer:
         # l2 best = 0.0007
         if self.l2 != None:
             for i in range(len(self.model.layers)):
-                if self.model.layers[i].get_weights() != []:
-                #if isinstance(self.model.layers[i], tf.keras.layers.Conv2D) or isinstance(self.model.layers[i], tf.keras.layers.Dense):
+                #if self.model.layers[i].get_weights() != []:
+                if isinstance(self.model.layers[i], tf.keras.layers.Conv2D) or isinstance(self.model.layers[i], tf.keras.layers.Dense):
                     print('Adding regularizer to layer {}'.format(self.model.layers[i].name))
                     self.model.layers[i].kernel_regularizer = tf.keras.regularizers.l2(self.l2)
 
