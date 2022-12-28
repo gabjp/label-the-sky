@@ -1,7 +1,7 @@
 import efficientnet
 from efficientnet.tfkeras import EfficientNetB0
 import json
-from keras_applications import vgg16, resnext, resnet
+from keras_applications import vgg16, resnext, resnet50
 import numpy as np
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' # info and warning messages are not printed
@@ -36,14 +36,14 @@ BACKBONE_FN = {
     'efficientnet': EfficientNetB0,
     'resnext': resnext.ResNeXt50,
     'vgg': vgg16.VGG16, 
-    'resnet': resnet.ResNet50
+    'resnet': resnet50.ResNet50
 }
 
 PREPROCESSING_FN = {
     'efficientnet': efficientnet.model.preprocess_input,
     'resnext': resnext.preprocess_input,
     'vgg': vgg16.preprocess_input, 
-    'resnet': resnet.preprocess_input
+    'resnet': resnet50.preprocess_input
 }
 
 
