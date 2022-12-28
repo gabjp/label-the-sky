@@ -19,6 +19,7 @@ timestamp = sys.argv[5]
 
 base_dir = os.environ['HOME']
 
+print('oi')
 trainer = Trainer(
     backbone=backbone,
     n_channels=n_channels,
@@ -27,6 +28,7 @@ trainer = Trainer(
     weights=None,
     model_name=f'{timestamp}_{backbone}_{n_channels}_{dataset}'
 )
+print('oi')
 
 trainer.describe(verbose=True)
 
