@@ -17,7 +17,6 @@ from tensorflow.keras.layers import Input, Dense, Dropout, GlobalAveragePooling2
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras import backend as K
-import tensorflow_addons as tfa
 
 
 from label_the_sky.training.callbacks import TimeHistory
@@ -304,14 +303,7 @@ class Trainer:
             for layer in self.model.layers[:self.top_layer_idx]:
                 layer.trainable = False
 
-        #opt = Adam(lr=learning_rate)
-
-        opt = tfa.optimizers.RectifiedAdam(
-            lr=1e-4,
-            total_steps=10000,
-            warmup_proportion=0.1,
-            min_lr=1e-5
-            )
+        opt = Adam(lr=learning_rate)
 
         # Here, I'll try to add an r2 regularization. (Please don't break)
         # l2 best = 0.0007
@@ -503,15 +495,8 @@ class Trainer:
             )
             for l in self.model.layers:
                 l.trainable = True
-            
-            opt = tfa.optimizers.RectifiedAdam(
-                lr=1e-4,
-                total_steps=10000,
-                warmup_proportion=0.1,
-                min_lr=1e-5
-            )
 
-            #opt = Adam(lr=learning_rate)
+            opt = Adam(lr=learning_rate)
 
             self.model.compile(
                 loss=self.loss,
