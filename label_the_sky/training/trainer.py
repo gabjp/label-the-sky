@@ -1,7 +1,7 @@
 import efficientnet
 from efficientnet.tfkeras import EfficientNetB0
 import json
-from keras_applications import vgg16, resnext
+from keras_applications import vgg16, resnext, resnet
 import numpy as np
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' # info and warning messages are not printed
@@ -22,7 +22,7 @@ from tensorflow.keras import backend as K
 from label_the_sky.training.callbacks import TimeHistory
 
 
-BACKBONES = ['efficientnet', 'resnext', 'vgg', None]
+BACKBONES = ['efficientnet', 'resnext', 'vgg', None, 'resnet']
 BATCH_SIZE = 32
 BROAD_BANDS = [0, 5, 7, 9, 11]
 CLASS_NAMES = ['GALAXY', 'STAR', 'QSO']
@@ -35,13 +35,15 @@ SPLITS = ['train', 'val', 'test']
 BACKBONE_FN = {
     'efficientnet': EfficientNetB0,
     'resnext': resnext.ResNeXt50,
-    'vgg': vgg16.VGG16
+    'vgg': vgg16.VGG16, 
+    'resnet': resnet.ResNet50
 }
 
 PREPROCESSING_FN = {
     'efficientnet': efficientnet.model.preprocess_input,
     'resnext': resnext.preprocess_input,
-    'vgg': vgg16.preprocess_input
+    'vgg': vgg16.preprocess_input, 
+    'resnet': resnet.preprocess_input
 }
 
 
