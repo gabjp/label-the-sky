@@ -116,7 +116,6 @@ def copy_weights_tl(model_orig, custom_model, layer_modify):
     if layer.name in layer_names:
       if layer.get_weights() != []:
         target_layer = custom_model.get_layer(layer.name)
-        print(f"Adding regularizer to: {layer.name}")
 
         if layer.name in layer_to_modify:    
           kernels = layer.get_weights()[0]
@@ -266,7 +265,8 @@ class Trainer:
             config = p_net.get_config()
             config["layers"][0]["config"]["batch_input_shape"] = (None, 32, 32, 12)
             model = tf.keras.models.Model.from_config(config)
-            f_conv =  model.get_layer(index=1).name
+            id = 2 if self.backbone == "resnet" else 1
+            f_conv =  model.get_layer(index=id).name
             copy_weights_tl(p_net, model, f_conv)
 
         else:
