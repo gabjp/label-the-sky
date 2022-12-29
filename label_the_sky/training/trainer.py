@@ -493,7 +493,7 @@ class Trainer:
             self.run = f'{run}{run_suffix}'
             self.build_model(freeze_backbone=True, skip_mismatch=True)
             self.set_callbacks()
-            print_trainable(self.model) # Check if right layers are trainable
+            #print_trainable(self.model) # Check if right layers are trainable
             history0 = self.model.fit(
                 X_train, y_train,
                 validation_data=(X_val, y_val),
@@ -513,7 +513,7 @@ class Trainer:
                 optimizer=opt,
                 metrics=self.metrics)
 
-            print_trainable(self.model) # Check if right layers are trainable
+           # print_trainable(self.model) # Check if right layers are trainable
 
             history = self.model.fit(
                 X_train, y_train,
