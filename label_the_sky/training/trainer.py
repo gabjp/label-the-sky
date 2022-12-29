@@ -135,6 +135,12 @@ def copy_weights_tl(model_orig, custom_model, layer_modify):
 # multidy_wights and copy_weights_tl from: 
 # https://towardsdatascience.com/implementing-transfer-learning-from-rgb-to-multi-channel-imagery-f87924679166
 
+def print_trainable(model):
+    print("Printing trainable layers")
+    for layer in model.layers:
+        if layer.trainable: print(layer.name)
+    
+
 
 class CustomMAE(tf.keras.losses.Loss):
   def __init__(self):
@@ -487,6 +493,7 @@ class Trainer:
             self.run = f'{run}{run_suffix}'
             self.build_model(freeze_backbone=True, skip_mismatch=True)
             self.set_callbacks()
+            print_trainable(self.model) # Check if right layers are trainable
             history0 = self.model.fit(
                 X_train, y_train,
                 validation_data=(X_val, y_val),
@@ -505,6 +512,8 @@ class Trainer:
                 loss=self.loss,
                 optimizer=opt,
                 metrics=self.metrics)
+
+            print_trainable(self.model) # Check if right layers are trainable
 
             history = self.model.fit(
                 X_train, y_train,
