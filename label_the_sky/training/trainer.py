@@ -202,8 +202,8 @@ class Trainer:
         tf.compat.v1.disable_eager_execution()
         os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 
-        if self.backbone is not None:
-            self.build_model()
+        #if self.backbone is not None:
+        #    self.build_model()
 
     def load_data(self, dataset, split, return_y=True):
         channels = 12 if self.n_channels==5 else self.n_channels
