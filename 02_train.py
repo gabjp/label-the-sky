@@ -60,7 +60,7 @@ trainer.describe(verbose=True)
 
 print(f'training: {mode}; dataset mode: {dataset_mode}')
 if dataset_mode == 'full':
-    trainer.train(X_train, y_train, X_val, y_val, mode=mode, epochs=30, runs=1)
+    trainer.train(X_train, y_train, X_val, y_val, mode=mode, epochs=100, runs=1)
 else:
     trainer.train_lowdata(X_train, y_train, X_val, y_val, mode=mode)
 
