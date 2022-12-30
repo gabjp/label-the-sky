@@ -45,7 +45,7 @@ def main():
 
     if metrics["acc"] != []:
         df[["acc", "val_acc"]].plot()
-        plt.savefig(f"outs/new/figures/{title}.png")
+        plt.savefig(f"outs/new/figures/{title}_2.png")
 
 
     return
