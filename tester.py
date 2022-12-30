@@ -40,7 +40,7 @@ print('evaluating model on test set')
 trainer.evaluate(X_test, y_test)
 
 print("Generating probability estimate")
-ypred = trainer.model.predict_proba(X_val)
+ypred = trainer.predict(X_val)
 np.save("ypred.npy", ypred)
 np.save("ytrue.npy", y_val)
 
