@@ -27,7 +27,7 @@ def get_values(path):
     with open(path, mode="r") as file:
         for line in file:
             words = line.split()
-            if words[1] == "-":
+            if len(words) >= 1 and words[1] == "-":
                 retrieve_values(metrics, words)
             else: continue
 
