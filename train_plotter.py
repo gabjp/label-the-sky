@@ -37,7 +37,7 @@ def main():
     path = sys.argv[1]
     metrics = get_values(path)
 
-    df = pd.DataFrame(metrics)
+    df = pd.DataFrame(metrics) if metrics["acc"] != [] else pd.DataFrame({"loss":metrics["loss"], "val_loss":metrics["val_loss"]})
 
     title = path.split("/")[-1] 
     df[["loss", "val_loss"]].plot(title=title)
