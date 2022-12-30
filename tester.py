@@ -1,6 +1,7 @@
 from label_the_sky.training.trainer import Trainer
 import os
 import sys
+import numpy as np
 
 if len(sys.argv) != 8:
     print('usage: python {} <dataset> <backbone> <pretraining_dataset> <n_channels> <finetune> <dataset_mode> <timestamp>'.format(
@@ -37,4 +38,10 @@ trainer.evaluate(X_val, y_val)
 
 print('evaluating model on test set')
 trainer.evaluate(X_test, y_test)
+
+print("Generating probability estimate")
+ypred = trainer.model.predict_proba(X_val)
+np.save("ypred.npy", ypred)
+np.save("ytrue.npy", y_val)
+
 
