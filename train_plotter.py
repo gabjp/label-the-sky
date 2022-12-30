@@ -39,7 +39,7 @@ def main():
 
     df = pd.DataFrame(metrics)
 
-    title = path.spli("/")[-1] 
+    title = path.split("/")[-1] 
     df[["loss", "val_loss"]].plot(title=title)
     plt.savefig(f"outs/new/figures/{title}.png")
 
