@@ -45,5 +45,23 @@ X_train_12ch, y_train_12ch = (np.load(f"../data/{dataset}_12_X_train.npy"), np.l
 X_val_12ch, y_val_12ch = (np.load(f"../data/{dataset}_12_X_val.npy"), np.load(f"../data/{dataset}_12_y_val.npy"))
 X_test_12ch, y_test_12ch = (np.load(f"../data/{dataset}_12_X_test.npy"), np.load(f"../data/{dataset}_12_y_test.npy"))
 
-print(y_train_csv)
-print(y_train_12ch)
+print("Finished loading data")
+print("Generating data to train the meta-model")
+
+skf = StratifiedKFold(n_splits=5, shuffle=False, random_state=2)
+split = skf.split(X_train_csv, y_train_csv)
+
+print("Generating RF data")
+
+RF_pred = []
+for i, (train_index, test_index) in enumerate(split):
+    print(f"Starting fold {i}")
+    rf = RandomForestClassifier(random_state=2, n_estimators=100, bootstrap=False)
+    rf.fit(X_train_csv.iloc[train_index], y = y_train_csv.iloc[train_index])
+    RF_pred.append((rf.predict_proba(X_train_csv.iloc[test_index]), y_train_csv.iloc[test_index]))
+
+print(RF_pred)
+
+print("Generating 12ch CNN data")
+for i, (train_index, test_index) in enumerate(split):
+    continue
