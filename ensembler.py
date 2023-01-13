@@ -41,9 +41,9 @@ X_val_csv, y_val_csv = (val_csv[_morph+_feat], val_csv["target"])
 X_test_csv, y_test_csv = (test_csv[_morph+_feat], test_csv["target"])
 
 #Load 12ch image data
-X_train_12ch, y_train_12ch = (np.load(f"~/data/{dataset}_12_X_train.npy"), np.load(f"~/data/{dataset}_12_y_train.npy"))
-X_val_12ch, y_val_12ch = (np.load(f"~/data/{dataset}_12_X_val.npy"), np.load(f"~/data/{dataset}_12_y_val.npy"))
-X_test_12ch, y_test_12ch = (np.load(f"~/data/{dataset}_12_X_test.npy"), np.load(f"~/data/{dataset}_12_y_test.npy"))
+X_train_12ch, y_train_12ch = (np.load(f"../data/{dataset}_12_X_train.npy"), np.load(f"../data/{dataset}_12_y_train.npy"))
+X_val_12ch, y_val_12ch = (np.load(f"../data/{dataset}_12_X_val.npy"), np.load(f"../data/{dataset}_12_y_val.npy"))
+X_test_12ch, y_test_12ch = (np.load(f"../data/{dataset}_12_X_test.npy"), np.load(f"../data/{dataset}_12_y_test.npy"))
 
 print(y_train_csv)
 print(y_train_12ch)
