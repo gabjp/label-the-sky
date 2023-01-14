@@ -178,8 +178,8 @@ def eval():
     lr = LogisticRegression(C=0.568, penalty='l2', solver='lbfgs')
     lr.fit(X_train_meta, y=y_train_meta)
 
-    X_val_meta = np.concat((CNN12_proba_val, RF_proba_val), axis=1)
-    X_test_meta = np.concat((CNN12_proba_test, RF_proba_test), axis=1)
+    X_val_meta = np.concatenate((CNN12_proba_val, RF_proba_val), axis=1)
+    X_test_meta = np.concatenate((CNN12_proba_test, RF_proba_test), axis=1)
     y_val_meta = y_val_csv.values
     y_test_meta = y_test_csv.values
 
