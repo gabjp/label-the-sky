@@ -51,7 +51,7 @@ print("Finished loading data")
 print("Generating data to train the meta-model")
 
 skf = StratifiedKFold(n_splits=5, shuffle=False, random_state=2)
-split = skf.split(X_train_csv, y_train_csv)
+split = list(skf.split(X_train_csv, y_train_csv))
 
 print("Generating RF data")
 
