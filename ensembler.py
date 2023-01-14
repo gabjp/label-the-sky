@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 import os
 from scipy.stats import loguniform
+from sklearn.metrics import classification_report
 
 base_dir = os.environ['HOME']
 CLASS_MAP = {0:2,1:1,2:0} # 0 - Galaxy, 1 - Star, 2 - Quasar
@@ -113,7 +114,84 @@ def rgs():
 
 
 def eval():
-    pass
+    dataset = sys.argv[1]
+
+    dataset_csv = pd.read_csv(dataset + ".csv")
+
+    #Fixing csv data target labels (This is pretty ugly, find a better fix later)
+    dataset_csv["target"] = dataset_csv["target"].apply(lambda c: CLASS_MAP[c])
+
+    train_csv = dataset_csv[(dataset_csv.split=="train")]
+    val_csv = dataset_csv[dataset_csv.split=="val"]
+    test_csv = dataset_csv[dataset_csv.split=="test"]
+
+    # Load tabular data
+    X_train_csv, y_train_csv = (train_csv[_morph+_feat], train_csv["target"])
+    X_val_csv, y_val_csv = (val_csv[_morph+_feat], val_csv["target"])
+    X_test_csv, y_test_csv = (test_csv[_morph+_feat], test_csv["target"])
+
+    #Load 12ch image data
+    X_train_12ch, y_train_12ch = (np.load(f"../data/{dataset}_12_X_train.npy"), np.load(f"../data/{dataset}_12_y_train.npy"))
+    X_val_12ch, y_val_12ch = (np.load(f"../data/{dataset}_12_X_val.npy"), np.load(f"../data/{dataset}_12_y_val.npy"))
+    X_test_12ch, y_test_12ch = (np.load(f"../data/{dataset}_12_X_test.npy"), np.load(f"../data/{dataset}_12_y_test.npy"))
+
+    #Load Meta-model data
+    X_train_meta = np.load("../data/meta_features.npy")
+    y_train_meta = np.load("../data/meta_target.npy").ravel()
+
+    print("Finished loading data")
+
+    print("Starting RF evaluation")
+
+    rf = RandomForestClassifier(random_state=2, n_estimators=100, bootstrap=False)
+    rf.fit(X_train_csv, y=y_train_csv)
+
+    RF_pred_val = rf.predict(X_val_csv)
+    RF_pred_test = rf.predict(X_test_csv)
+    print("RF performance on validation set")
+    print(classification_report(y_val_csv, RF_pred_val, digits=6))
+    print("RF performance on test set")
+    print(classification_report(y_test_csv, RF_pred_test, digits=6))
+    RF_proba_val = rf.predict_proba(X_val_csv)
+    RF_proba_test = rf.predict_proba(X_test_csv)
+
+    print("Starting 12ch CNN evaluation")
+    weight_file = os.path.join(base_dir, 'trained_models', "0601_vgg_12_unl_w99_clf_ft1_full.h5")
+    trainer = Trainer(
+        backbone="vgg",
+        n_channels=12,
+        output_type='class',
+        base_dir=base_dir,
+        weights=weight_file,
+        model_name=f'0301_vgg_12_unl_w99_clf_ft1_full',
+        l2 = 0.0007 
+    )
+    print("CNN performane on validation set")
+    trainer.evaluate(X_val_12ch, y_val_12ch)
+    print("CNN performance on test set")
+    trainer.evaluate(X_test_12ch, y_test_12ch)
+    CNN12_proba_val = trainer.predict(X_val_12ch)
+    CNN12_proba_test = trainer.predic(X_test_12ch)
+
+    print("Starting LR evaluation")
+
+    lr = LogisticRegression(C=0.568, penalty='l2', solver='lbfgs')
+    lr.fit(X_train_meta, y=y_train_meta)
+
+    X_val_meta = np.concat((CNN12_proba_val, RF_proba_val), axis=1)
+    X_test_meta = np.concat((CNN12_proba_test, RF_proba_test), axis=1)
+    y_val_meta = y_val_csv.values
+    y_test_meta = y_test_csv.values
+
+    LR_pred_val = lr.predict(X_val_meta)
+    LR_pred_test = lr.predict(X_test_meta)
+
+    print("LR performance on validation set")
+    print(classification_report(y_val_meta, LR_pred_val, digits=6))
+    print("LR performance on test set")
+    print(classification_report(y_test_meta, LR_pred_test, digits=6))
+
+
 
 if __name__=="__main__":
     if "g" in sys.argv[2]:
