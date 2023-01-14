@@ -5,7 +5,9 @@ from sklearn.linear_model import  LogisticRegression
 import sys
 import pandas as pd
 import numpy as np
+import os
 
+base_dir = os.environ['HOME']
 CLASS_MAP = {0:2,1:1,2:0} # 0 - Galaxy, 1 - Star, 2 - Quasar
 
 _morph = ['FWHM_n', 'A', 'B', 'KRON_RADIUS']
@@ -53,15 +55,41 @@ split = skf.split(X_train_csv, y_train_csv)
 
 print("Generating RF data")
 
-RF_pred = []
+RF_pred = np.array([]).reshape(0,5)
+RF_target = np.array([]).reshape(0,1)
 for i, (train_index, test_index) in enumerate(split):
     print(f"Starting fold {i}")
     rf = RandomForestClassifier(random_state=2, n_estimators=100, bootstrap=False)
     rf.fit(X_train_csv.iloc[train_index], y = y_train_csv.iloc[train_index])
-    RF_pred.append((rf.predict_proba(X_train_csv.iloc[test_index]), y_train_csv.iloc[test_index]))
+    RF_pred = np.concatenate((RF_pred,rf.predict_proba(X_train_csv.iloc[test_index])), axis=0) 
+    RF_target = np.concatenate((RF_target,y_train_csv.iloc[test_index].values), axis = 0)
 
-print(RF_pred)
 
 print("Generating 12ch CNN data")
+
+CNN12_pred = np.array([]).reshape(0,5)
+CNN12_target = np.array([]).reshape(0,3)
 for i, (train_index, test_index) in enumerate(split):
-    continue
+    print(f"Starting fold {i}")
+    trainer = Trainer(
+        backbone="vgg",
+        n_channels=12,
+        output_type='class',
+        base_dir=base_dir,
+        weights="unl_w99",
+        model_name=f'0300_vgg_12_unl_w99_clf_ft1_full',
+        l2 = 0.0007 
+    )
+    trainer.train(X_train_12ch[:,:,:,train_index], y_train_12ch[:,train_index], X_val_12ch, y_val_12ch, mode="full", epochs=150, runs=1)
+    CNN12_pred = np.concatenate((CNN12_pred,trainer.predict(X_train_12ch[:,:,:,test_index])), axis=0)
+    CNN12_target = np.concatenate((CNN12_target,y_train_12ch[:,test_index]), axis=0)
+
+meta_features = np.concatenate((CNN12_pred,RF_pred), axis=1)
+meta_target = RF_target
+
+print("Saving meta-model trainig set")
+np.save("../data/meta_features.npy",meta_features)
+np.save("../data/meta_target.npy",meta_target)
+
+print(meta_features)
+print(meta_target)
