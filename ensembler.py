@@ -106,8 +106,8 @@ def rgs():
     y = np.load("../data/meta_target.npy")
     lr = LogisticRegression()
     search = RandomizedSearchCV(estimator=lr, param_distributions=space, n_iter=100, cv=3, verbose=1, random_state=2, n_jobs=-1, scoring="accuracy")
-    result = search.fit(X,y)
-    
+    result = search.fit(X,y.ravel())
+
     print('Best Score: %s' % result.best_score_)
     print('Best Hyperparameters: %s' % result.best_params_)
 
