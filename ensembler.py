@@ -62,7 +62,7 @@ for i, (train_index, test_index) in enumerate(split):
     rf = RandomForestClassifier(random_state=2, n_estimators=100, bootstrap=False)
     rf.fit(X_train_csv.iloc[train_index], y = y_train_csv.iloc[train_index])
     RF_pred = np.concatenate((RF_pred,rf.predict_proba(X_train_csv.iloc[test_index])), axis=0) 
-    RF_target = np.concatenate((RF_target,y_train_csv.iloc[test_index].values.reshape(0,1)), axis = 0)
+    RF_target = np.concatenate((RF_target,np.array([y_train_csv.iloc[test_index].values]).T), axis = 0)
 
 
 print("Generating 12ch CNN data")
