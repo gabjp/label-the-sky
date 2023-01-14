@@ -81,7 +81,7 @@ for i, (train_index, test_index) in enumerate(split):
         model_name=f'0300_vgg_12_unl_w99_clf_ft1_full',
         l2 = 0.0007 
     )
-    trainer.train(X_train_12ch[train_index,:,:,:], y_train_12ch[train_index,:], X_val_12ch, y_val_12ch, mode="finetune", epochs=150, runs=1)
+    trainer.train(X_train_12ch[train_index,:,:,:], y_train_12ch[train_index,:], X_val_12ch, y_val_12ch, mode="finetune", epochs=100, runs=1)
     CNN12_pred = np.concatenate((CNN12_pred,trainer.predict(X_train_12ch[test_index,:,:,:])), axis=0)
     CNN12_target = np.concatenate((CNN12_target,y_train_12ch[test_index,:]), axis=0)
 
