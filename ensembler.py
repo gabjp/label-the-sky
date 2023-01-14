@@ -55,7 +55,7 @@ split = skf.split(X_train_csv, y_train_csv)
 
 print("Generating RF data")
 
-RF_pred = np.array([]).reshape(0,5)
+RF_pred = np.array([]).reshape(0,3)
 RF_target = np.array([]).reshape(0,1)
 for i, (train_index, test_index) in enumerate(split):
     print(f"Starting fold {i}")
@@ -67,7 +67,7 @@ for i, (train_index, test_index) in enumerate(split):
 
 print("Generating 12ch CNN data")
 
-CNN12_pred = np.array([]).reshape(0,5)
+CNN12_pred = np.array([]).reshape(0,3)
 CNN12_target = np.array([]).reshape(0,3)
 for i, (train_index, test_index) in enumerate(split):
     print(f"Starting fold {i}")
