@@ -171,7 +171,7 @@ def eval():
     print("CNN performance on test set")
     trainer.evaluate(X_test_12ch, y_test_12ch)
     CNN12_proba_val = trainer.predict(X_val_12ch)
-    CNN12_proba_test = trainer.predic(X_test_12ch)
+    CNN12_proba_test = trainer.predict(X_test_12ch)
 
     print("Starting LR evaluation")
 
