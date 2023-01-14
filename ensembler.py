@@ -67,6 +67,7 @@ for i, (train_index, test_index) in enumerate(split):
 
 print("Generating 12ch CNN data")
 
+weight_file = os.path.join(base_dir, 'trained_models', '0601_vgg_12_unl_w99.h5')
 CNN12_pred = np.array([]).reshape(0,3)
 CNN12_target = np.array([]).reshape(0,3)
 for i, (train_index, test_index) in enumerate(split):
@@ -76,7 +77,7 @@ for i, (train_index, test_index) in enumerate(split):
         n_channels=12,
         output_type='class',
         base_dir=base_dir,
-        weights="unl_w99",
+        weights=weight_file,
         model_name=f'0300_vgg_12_unl_w99_clf_ft1_full',
         l2 = 0.0007 
     )
