@@ -26,32 +26,37 @@ _feat = ['u_iso',
              'J0861_iso',
              'z_iso']
 
+dataset = sys.argv[1]
+
+dataset_csv = pd.read_csv(dataset + ".csv")
+
+#Fixing csv data target labels (This is pretty ugly, find a better fix later)
+dataset_csv["target"] = dataset_csv["target"].apply(lambda c: CLASS_MAP[c])
+
+train_csv = dataset_csv[(dataset_csv.split=="train")]
+val_csv = dataset_csv[dataset_csv.split=="val"]
+test_csv = dataset_csv[dataset_csv.split=="test"]
+
+# Load tabular data
+X_train_csv, y_train_csv = (train_csv[_morph+_feat], train_csv["target"])
+X_val_csv, y_val_csv = (val_csv[_morph+_feat], val_csv["target"])
+X_test_csv, y_test_csv = (test_csv[_morph+_feat], test_csv["target"])
+
+#Load 12ch image data
+X_train_12ch, y_train_12ch = (np.load(f"../data/{dataset}_12_X_train.npy"), np.load(f"../data/{dataset}_12_y_train.npy"))
+X_val_12ch, y_val_12ch = (np.load(f"../data/{dataset}_12_X_val.npy"), np.load(f"../data/{dataset}_12_y_val.npy"))
+X_test_12ch, y_test_12ch = (np.load(f"../data/{dataset}_12_X_test.npy"), np.load(f"../data/{dataset}_12_y_test.npy"))
+
+#Load 3ch image data
+X_train_3ch, y_train_3ch = (np.load(f"../data/{dataset}_3_X_train.npy"), np.load(f"../data/{dataset}_3_y_train.npy"))
+X_val_3ch, y_val_3ch = (np.load(f"../data/{dataset}_3_X_val.npy"), np.load(f"../data/{dataset}_3_y_val.npy"))
+X_test_3ch, y_test_3ch = (np.load(f"../data/{dataset}_3_X_test.npy"), np.load(f"../data/{dataset}_3_y_test.npy"))
+
+print("Finished loading data")
+
 set_random_seeds()
 
 def gen():
-
-    dataset = sys.argv[1]
-
-    dataset_csv = pd.read_csv(dataset + ".csv")
-
-    #Fixing csv data target labels (This is pretty ugly, find a better fix later)
-    dataset_csv["target"] = dataset_csv["target"].apply(lambda c: CLASS_MAP[c])
-
-    train_csv = dataset_csv[(dataset_csv.split=="train")]
-    val_csv = dataset_csv[dataset_csv.split=="val"]
-    test_csv = dataset_csv[dataset_csv.split=="test"]
-
-    # Load tabular data
-    X_train_csv, y_train_csv = (train_csv[_morph+_feat], train_csv["target"])
-    X_val_csv, y_val_csv = (val_csv[_morph+_feat], val_csv["target"])
-    X_test_csv, y_test_csv = (test_csv[_morph+_feat], test_csv["target"])
-
-    #Load 12ch image data
-    X_train_12ch, y_train_12ch = (np.load(f"../data/{dataset}_12_X_train.npy"), np.load(f"../data/{dataset}_12_y_train.npy"))
-    X_val_12ch, y_val_12ch = (np.load(f"../data/{dataset}_12_X_val.npy"), np.load(f"../data/{dataset}_12_y_val.npy"))
-    X_test_12ch, y_test_12ch = (np.load(f"../data/{dataset}_12_X_test.npy"), np.load(f"../data/{dataset}_12_y_test.npy"))
-
-    print("Finished loading data")
     print("Generating data to train the meta-model")
 
     skf = StratifiedKFold(n_splits=5, shuffle=False, random_state=2)
@@ -89,7 +94,27 @@ def gen():
         CNN12_pred = np.concatenate((CNN12_pred,trainer.predict(X_train_12ch[test_index,:,:,:])), axis=0)
         CNN12_target = np.concatenate((CNN12_target,y_train_12ch[test_index,:]), axis=0)
 
-    meta_features = np.concatenate((CNN12_pred,RF_pred), axis=1)
+
+    print("Generating 3ch CNN data")
+
+    CNN3_pred = np.array([]).reshape(0,3)
+    CNN3_target = np.array([]).reshape(0,3)
+    for i, (train_index, test_index) in enumerate(split):
+        print(f"Starting fold {i}")
+        trainer = Trainer(
+            backbone="vgg",
+            n_channels=3,
+            output_type='class',
+            base_dir=base_dir,
+            weights="imagenet",
+            model_name=f'0300_vgg_3_unl_w99_clf_ft1_full',
+            l2 = 0.005 
+        )
+        trainer.train(X_train_3ch[train_index,:,:,:], y_train_3ch[train_index,:], X_val_3ch, y_val_3ch, mode="finetune", epochs=100, runs=1)
+        CNN3_pred = np.concatenate((CNN3_pred,trainer.predict(X_train_3ch[test_index,:,:,:])), axis=0)
+        CNN3_target = np.concatenate((CNN3_target,y_train_3ch[test_index,:]), axis=0)
+
+    meta_features = np.concatenate((CNN12_pred,RF_pred,CNN3_pred), axis=1)
     meta_target = RF_target
 
     print("Saving meta-model trainig set")
@@ -114,35 +139,11 @@ def rgs():
 
 
 def eval():
-    dataset = sys.argv[1]
-
-    dataset_csv = pd.read_csv(dataset + ".csv")
-
-    #Fixing csv data target labels (This is pretty ugly, find a better fix later)
-    dataset_csv["target"] = dataset_csv["target"].apply(lambda c: CLASS_MAP[c])
-
-    train_csv = dataset_csv[(dataset_csv.split=="train")]
-    val_csv = dataset_csv[dataset_csv.split=="val"]
-    test_csv = dataset_csv[dataset_csv.split=="test"]
-
-    # Load tabular data
-    X_train_csv, y_train_csv = (train_csv[_morph+_feat], train_csv["target"])
-    X_val_csv, y_val_csv = (val_csv[_morph+_feat], val_csv["target"])
-    X_test_csv, y_test_csv = (test_csv[_morph+_feat], test_csv["target"])
-
-    #Load 12ch image data
-    X_train_12ch, y_train_12ch = (np.load(f"../data/{dataset}_12_X_train.npy"), np.load(f"../data/{dataset}_12_y_train.npy"))
-    X_val_12ch, y_val_12ch = (np.load(f"../data/{dataset}_12_X_val.npy"), np.load(f"../data/{dataset}_12_y_val.npy"))
-    X_test_12ch, y_test_12ch = (np.load(f"../data/{dataset}_12_X_test.npy"), np.load(f"../data/{dataset}_12_y_test.npy"))
-
     #Load Meta-model data
     X_train_meta = np.load("../data/meta_features.npy")
     y_train_meta = np.load("../data/meta_target.npy").ravel()
 
-    print("Finished loading data")
-
     print("Starting RF evaluation")
-
     rf = RandomForestClassifier(random_state=2, n_estimators=100, bootstrap=False)
     rf.fit(X_train_csv, y=y_train_csv)
 
@@ -154,6 +155,7 @@ def eval():
     print(classification_report(y_test_csv, RF_pred_test, digits=6))
     RF_proba_val = rf.predict_proba(X_val_csv)
     RF_proba_test = rf.predict_proba(X_test_csv)
+
 
     print("Starting 12ch CNN evaluation")
     weight_file = os.path.join(base_dir, 'trained_models', "0601_vgg_12_unl_w99_clf_ft1_full.h5")
@@ -173,13 +175,32 @@ def eval():
     CNN12_proba_val = trainer.predict(X_val_12ch)
     CNN12_proba_test = trainer.predict(X_test_12ch)
 
-    print("Starting LR evaluation")
 
+    print("Starting 3ch CNN evaluation")
+    weight_file = os.path.join(base_dir, 'trained_models', "0601_vgg_3_imagenet_clf_ft1_full.h5")
+    trainer = Trainer(
+        backbone="vgg",
+        n_channels=3,
+        output_type='class',
+        base_dir=base_dir,
+        weights=weight_file,
+        model_name=f'0301_vgg_3_unl_w99_clf_ft1_full',
+        l2 = 0.0007 
+    )
+    print("CNN performane on validation set")
+    trainer.evaluate(X_val_3ch, y_val_3ch)
+    print("CNN performance on test set")
+    trainer.evaluate(X_test_3ch, y_test_3ch)
+    CNN3_proba_val = trainer.predict(X_val_3ch)
+    CNN3_proba_test = trainer.predict(X_test_3ch)
+
+
+    print("Starting LR evaluation")
     lr = LogisticRegression(C=0.568, penalty='l2', solver='lbfgs')
     lr.fit(X_train_meta, y=y_train_meta)
 
-    X_val_meta = np.concatenate((CNN12_proba_val, RF_proba_val), axis=1)
-    X_test_meta = np.concatenate((CNN12_proba_test, RF_proba_test), axis=1)
+    X_val_meta = np.concatenate((CNN12_proba_val, RF_proba_val,CNN3_proba_val), axis=1)
+    X_test_meta = np.concatenate((CNN12_proba_test, RF_proba_test,CNN3_proba_test), axis=1)
     y_val_meta = y_val_csv.values
     y_test_meta = y_test_csv.values
 
