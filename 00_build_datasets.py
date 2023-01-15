@@ -49,6 +49,7 @@ for split in ['train', 'val', 'test']:
         if n_channels == 12: # Lazy fix to shape problem
             X[i, :] = np.transpose(im_tmp, (1,2,0))        #(32,32,12)
         else:
+            print(im_tmp)
             X[i, :] = im_tmp
             
 
