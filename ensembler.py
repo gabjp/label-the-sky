@@ -8,6 +8,8 @@ import numpy as np
 import os
 from scipy.stats import loguniform
 from sklearn.metrics import classification_report
+from sklearn.svm import SVC
+from sklearn.preprocessing import StandardScaler
 
 base_dir = os.environ['HOME']
 CLASS_MAP = {0:2,1:1,2:0} # 0 - Galaxy, 1 - Star, 2 - Quasar
@@ -95,26 +97,7 @@ def gen():
         CNN12_target = np.concatenate((CNN12_target,y_train_12ch[test_index,:]), axis=0)
 
 
-    print("Generating 3ch CNN data")
-
-    CNN3_pred = np.array([]).reshape(0,3)
-    CNN3_target = np.array([]).reshape(0,3)
-    for i, (train_index, test_index) in enumerate(split):
-        print(f"Starting fold {i}")
-        trainer = Trainer(
-            backbone="vgg",
-            n_channels=3,
-            output_type='class',
-            base_dir=base_dir,
-            weights="imagenet",
-            model_name=f'0300_vgg_3_unl_w99_clf_ft1_full',
-            l2 = 0.005 
-        )
-        trainer.train(X_train_3ch[train_index,:,:,:], y_train_3ch[train_index,:], X_val_3ch, y_val_3ch, mode="finetune", epochs=100, runs=1)
-        CNN3_pred = np.concatenate((CNN3_pred,trainer.predict(X_train_3ch[test_index,:,:,:])), axis=0)
-        CNN3_target = np.concatenate((CNN3_target,y_train_3ch[test_index,:]), axis=0)
-
-    meta_features = np.concatenate((CNN12_pred,RF_pred,CNN3_pred), axis=1)
+    meta_features = np.concatenate((CNN12_pred,RF_pred), axis=1)
     meta_target = RF_target
 
     print("Saving meta-model trainig set")
@@ -123,16 +106,18 @@ def gen():
 
 def rgs():
     space = dict()
-    space['solver'] = ['newton-cg', 'lbfgs', 'liblinear']
-    space['penalty'] = ['none', 'l1', 'l2', 'elasticnet']
+    space['gamma'] = ['scale', 'auto', 0.1,1,10]
+    space['kernel'] = ['rbf', 'poly']
     space['C'] = loguniform(1e-5, 100)
+    space['decision_function_shape'] = ['ovr', 'ovo']
 
+    ss=StandardScaler()
+    ss.fit(X_train_csv)
+    transformed = ss.transform(X_train_csv)
 
-    X = np.load("../data/meta_features.npy")
-    y = np.load("../data/meta_target.npy")
-    lr = LogisticRegression()
-    search = RandomizedSearchCV(estimator=lr, param_distributions=space, n_iter=300, cv=3, verbose=1, random_state=2, n_jobs=-1, scoring="accuracy")
-    result = search.fit(X,y.ravel())
+    svc = SVC(random_state=2)
+    search = RandomizedSearchCV(estimator=SVC, param_distributions=space, n_iter=300, cv=3, verbose=1, random_state=2, n_jobs=-1, scoring="accuracy")
+    result = search.fit(transformed,y_train_csv)
 
     print('Best Score: %s' % result.best_score_)
     print('Best Hyperparameters: %s' % result.best_params_)
@@ -175,32 +160,12 @@ def eval():
     CNN12_proba_val = trainer.predict(X_val_12ch)
     CNN12_proba_test = trainer.predict(X_test_12ch)
 
-
-    print("Starting 3ch CNN evaluation")
-    weight_file = os.path.join(base_dir, 'trained_models', "0601_vgg_3_imagenet_clf_ft1_full.h5")
-    trainer = Trainer(
-        backbone="vgg",
-        n_channels=3,
-        output_type='class',
-        base_dir=base_dir,
-        weights=weight_file,
-        model_name=f'0301_vgg_3_unl_w99_clf_ft1_full',
-        l2 = 0.0007 
-    )
-    print("CNN performane on validation set")
-    trainer.evaluate(X_val_3ch, y_val_3ch)
-    print("CNN performance on test set")
-    trainer.evaluate(X_test_3ch, y_test_3ch)
-    CNN3_proba_val = trainer.predict(X_val_3ch)
-    CNN3_proba_test = trainer.predict(X_test_3ch)
-
-
     print("Starting LR evaluation")
     lr = LogisticRegression(C=0.568, penalty='l2', solver='lbfgs')
     lr.fit(X_train_meta, y=y_train_meta)
 
-    X_val_meta = np.concatenate((CNN12_proba_val, RF_proba_val,CNN3_proba_val), axis=1)
-    X_test_meta = np.concatenate((CNN12_proba_test, RF_proba_test,CNN3_proba_test), axis=1)
+    X_val_meta = np.concatenate((CNN12_proba_val, RF_proba_val), axis=1)
+    X_test_meta = np.concatenate((CNN12_proba_test, RF_proba_test), axis=1)
     y_val_meta = y_val_csv.values
     y_test_meta = y_test_csv.values
 
