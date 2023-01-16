@@ -116,7 +116,7 @@ def rgs():
     transformed = ss.transform(X_train_csv)
 
     svc = SVC(random_state=2)
-    search = RandomizedSearchCV(estimator=svc, param_distributions=space, n_iter=300, cv=3, verbose=1, random_state=2, n_jobs=-1, scoring="accuracy")
+    search = RandomizedSearchCV(estimator=svc, param_distributions=space, n_iter=30, cv=3, verbose=1, random_state=2, n_jobs=-1, scoring="accuracy")
     result = search.fit(transformed,y_train_csv)
 
     print('Best Score: %s' % result.best_score_)
