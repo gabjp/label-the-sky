@@ -87,44 +87,44 @@ def gen():
         SVM_pred = np.concatenate((SVM_pred,svm.predict_proba(svm_eval)), axis=0) 
         SVM_target = np.concatenate((SVM_target,np.array([y_train_csv.iloc[test_index].values]).T), axis = 0)
 
-    # print("Generating RF data")
+    print("Generating RF data", flush=True)
 
-    # RF_pred = np.array([]).reshape(0,3)
-    # RF_target = np.array([]).reshape(0,1)
-    # for i, (train_index, test_index) in enumerate(split):
-    #     print(f"Starting fold {i}")
-    #     rf = RandomForestClassifier(random_state=2, n_estimators=100, bootstrap=False)
-    #     rf.fit(X_train_csv.iloc[train_index], y = y_train_csv.iloc[train_index])
-    #     RF_pred = np.concatenate((RF_pred,rf.predict_proba(X_train_csv.iloc[test_index])), axis=0) 
-    #     RF_target = np.concatenate((RF_target,np.array([y_train_csv.iloc[test_index].values]).T), axis = 0)
+    RF_pred = np.array([]).reshape(0,3)
+    RF_target = np.array([]).reshape(0,1)
+    for i, (train_index, test_index) in enumerate(split):
+        print(f"Starting fold {i}", flush=True)
+        rf = RandomForestClassifier(random_state=2, n_estimators=100, bootstrap=False)
+        rf.fit(X_train_csv.iloc[train_index], y = y_train_csv.iloc[train_index])
+        RF_pred = np.concatenate((RF_pred,rf.predict_proba(X_train_csv.iloc[test_index])), axis=0) 
+        RF_target = np.concatenate((RF_target,np.array([y_train_csv.iloc[test_index].values]).T), axis = 0)
 
 
-    # print("Generating 12ch CNN data")
+    print("Generating 12ch CNN data", flush=True)
 
-    # weight_file = os.path.join(base_dir, 'trained_models', '0601_vgg_12_unl_w99.h5')
-    # CNN12_pred = np.array([]).reshape(0,3)
-    # CNN12_target = np.array([]).reshape(0,3)
-    # for i, (train_index, test_index) in enumerate(split):
-    #     print(f"Starting fold {i}")
-    #     trainer = Trainer(
-    #         backbone="vgg",
-    #         n_channels=12,
-    #         output_type='class',
-    #         base_dir=base_dir,
-    #         weights=weight_file,
-    #         model_name=f'0300_vgg_12_unl_w99_clf_ft1_full',
-    #         l2 = 0.0007 
-    #     )
-    #     trainer.train(X_train_12ch[train_index,:,:,:], y_train_12ch[train_index,:], X_val_12ch, y_val_12ch, mode="finetune", epochs=100, runs=1)
-    #     CNN12_pred = np.concatenate((CNN12_pred,trainer.predict(X_train_12ch[test_index,:,:,:])), axis=0)
-    #     CNN12_target = np.concatenate((CNN12_target,y_train_12ch[test_index,:]), axis=0)
+    weight_file = os.path.join(base_dir, 'trained_models', '0601_vgg_12_unl_w99.h5')
+    CNN12_pred = np.array([]).reshape(0,3)
+    CNN12_target = np.array([]).reshape(0,3)
+    for i, (train_index, test_index) in enumerate(split):
+        print(f"Starting fold {i}", flush=True)
+        trainer = Trainer(
+            backbone="vgg",
+            n_channels=12,
+            output_type='class',
+            base_dir=base_dir,
+            weights=weight_file,
+            model_name=f'0300_vgg_12_unl_w99_clf_ft1_full',
+            l2 = 0.0007 
+        )
+        trainer.train(X_train_12ch[train_index,:,:,:], y_train_12ch[train_index,:], X_val_12ch, y_val_12ch, mode="finetune", epochs=100, runs=1)
+        CNN12_pred = np.concatenate((CNN12_pred,trainer.predict(X_train_12ch[test_index,:,:,:])), axis=0)
+        CNN12_target = np.concatenate((CNN12_target,y_train_12ch[test_index,:]), axis=0)
 
-    # meta_features = np.concatenate((CNN12_pred,RF_pred,SVM_pred), axis=1)
-    # meta_target = RF_target
+    meta_features = np.concatenate((CNN12_pred,RF_pred,SVM_pred), axis=1)
+    meta_target = RF_target
 
-    # print("Saving meta-model trainig set")
-    # np.save("../data/meta_features.npy",meta_features)
-    # np.save("../data/meta_target.npy",meta_target)
+    print("Saving meta-model trainig set", flush=True)
+    np.save("../data/meta_features.npy",meta_features)
+    np.save("../data/meta_target.npy",meta_target)
 
 def rgs():
     space = dict()
