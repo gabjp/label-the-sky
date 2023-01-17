@@ -202,7 +202,7 @@ def eval():
     SVM_proba_test = svm.predict_proba(t_X_test_csv)
 
     print("Starting LR evaluation", flush=True)
-    lr = LogisticRegression(C=0.568, penalty='l2', solver='lbfgs')
+    lr = LogisticRegression(C=0.685, penalty='l1', solver='saga')
     lr.fit(X_train_meta, y=y_train_meta)
 
     X_val_meta = np.concatenate((CNN12_proba_val, RF_proba_val, SVM_proba_val), axis=1)
