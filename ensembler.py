@@ -106,7 +106,7 @@ def gen():
         ss.fit(X_train_csv.iloc[train_index])
         svm_train = ss.transform(X_train_csv.iloc[train_index])
         svm_eval = ss.transform(X_train_csv.iloc[test_index])
-        svm = SVC(decision_function_shape="ovo", kernel="rbf", C = 100, random_state=2)
+        svm = SVC(decision_function_shape="ovo", kernel="rbf", C = 100, random_state=2, probability=True)
         svm.fit(svm_train, y = y_train_csv.iloc[train_index])
         SVM_pred = np.concatenate((SVM_pred,svm.predict_proba(svm_eval)), axis=0) 
         SVM_target = np.concatenate((SVM_target,np.array([y_train_csv.iloc[test_index].values]).T), axis = 0)
