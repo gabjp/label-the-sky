@@ -127,19 +127,18 @@ def gen():
     np.save("../data/meta_target.npy",meta_target)
 
 def rgs():
+    X_train_meta = np.load("../data/meta_features.npy")
+    y_train_meta = np.load("../data/meta_target.npy").ravel()
+
     space = dict()
-    space['gamma'] = ['scale', 'auto', 0.1,1,10]
-    space['kernel'] = ['rbf', 'poly']
+    space['solver'] = ['newton-cg', 'sag', 'saga', 'lbfgs']
+    space['penalty'] = ['l1', 'l2', 'elasticnet']
     space['C'] = loguniform(1e-5, 100)
-    space['decision_function_shape'] = ['ovr', 'ovo']
 
-    ss=StandardScaler()
-    ss.fit(X_train_csv)
-    transformed = ss.transform(X_train_csv)
 
-    svc = SVC(random_state=2)
-    search = RandomizedSearchCV(estimator=svc, param_distributions=space, n_iter=30, cv=3, verbose=1, random_state=2, n_jobs=-1, scoring="accuracy")
-    result = search.fit(transformed,y_train_csv)
+    lr = LogisticRegression()
+    search = RandomizedSearchCV(estimator=lr, param_distributions=space, n_iter=300, cv=3, verbose=1, random_state=2, n_jobs=-1, scoring="accuracy")
+    result = search.fit(X_train_meta,y_train_meta)
 
     print('Best Score: %s' % result.best_score_)
     print('Best Hyperparameters: %s' % result.best_params_)
