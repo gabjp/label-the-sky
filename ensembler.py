@@ -28,7 +28,7 @@ _feat = ['u_iso',
              'J0861_iso',
              'z_iso']
 
-print("Starting")
+print("Starting", flush=True)
 
 dataset = sys.argv[1]
 
