@@ -28,6 +28,8 @@ _feat = ['u_iso',
              'J0861_iso',
              'z_iso']
 
+print("Starting")
+
 dataset = sys.argv[1]
 
 dataset_csv = pd.read_csv(dataset + ".csv")
@@ -39,20 +41,26 @@ train_csv = dataset_csv[(dataset_csv.split=="train")]
 val_csv = dataset_csv[dataset_csv.split=="val"]
 test_csv = dataset_csv[dataset_csv.split=="test"]
 
+print("Finished loading csv")
+
 # Load tabular data
 X_train_csv, y_train_csv = (train_csv[_morph+_feat], train_csv["target"])
 X_val_csv, y_val_csv = (val_csv[_morph+_feat], val_csv["target"])
 X_test_csv, y_test_csv = (test_csv[_morph+_feat], test_csv["target"])
+
+print("Finished loading tabular data")
 
 #Load 12ch image data
 X_train_12ch, y_train_12ch = (np.load(f"../data/{dataset}_12_X_train.npy"), np.load(f"../data/{dataset}_12_y_train.npy"))
 X_val_12ch, y_val_12ch = (np.load(f"../data/{dataset}_12_X_val.npy"), np.load(f"../data/{dataset}_12_y_val.npy"))
 X_test_12ch, y_test_12ch = (np.load(f"../data/{dataset}_12_X_test.npy"), np.load(f"../data/{dataset}_12_y_test.npy"))
 
+print("Finished loading image data")
+
 #Load 3ch image data
-X_train_3ch, y_train_3ch = (np.load(f"../data/{dataset}_3_X_train.npy"), np.load(f"../data/{dataset}_3_y_train.npy"))
-X_val_3ch, y_val_3ch = (np.load(f"../data/{dataset}_3_X_val.npy"), np.load(f"../data/{dataset}_3_y_val.npy"))
-X_test_3ch, y_test_3ch = (np.load(f"../data/{dataset}_3_X_test.npy"), np.load(f"../data/{dataset}_3_y_test.npy"))
+#X_train_3ch, y_train_3ch = (np.load(f"../data/{dataset}_3_X_train.npy"), np.load(f"../data/{dataset}_3_y_train.npy"))
+#X_val_3ch, y_val_3ch = (np.load(f"../data/{dataset}_3_X_val.npy"), np.load(f"../data/{dataset}_3_y_val.npy"))
+#X_test_3ch, y_test_3ch = (np.load(f"../data/{dataset}_3_X_test.npy"), np.load(f"../data/{dataset}_3_y_test.npy"))
 
 print("Finished loading data")
 
