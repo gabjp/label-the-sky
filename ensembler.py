@@ -41,43 +41,43 @@ train_csv = dataset_csv[(dataset_csv.split=="train")]
 val_csv = dataset_csv[dataset_csv.split=="val"]
 test_csv = dataset_csv[dataset_csv.split=="test"]
 
-print("Finished loading csv")
+print("Finished loading csv", flush=True)
 
 # Load tabular data
 X_train_csv, y_train_csv = (train_csv[_morph+_feat], train_csv["target"])
 X_val_csv, y_val_csv = (val_csv[_morph+_feat], val_csv["target"])
 X_test_csv, y_test_csv = (test_csv[_morph+_feat], test_csv["target"])
 
-print("Finished loading tabular data")
+print("Finished loading tabular data", flush=True)
 
 #Load 12ch image data
 X_train_12ch, y_train_12ch = (np.load(f"../data/{dataset}_12_X_train.npy"), np.load(f"../data/{dataset}_12_y_train.npy"))
 X_val_12ch, y_val_12ch = (np.load(f"../data/{dataset}_12_X_val.npy"), np.load(f"../data/{dataset}_12_y_val.npy"))
 X_test_12ch, y_test_12ch = (np.load(f"../data/{dataset}_12_X_test.npy"), np.load(f"../data/{dataset}_12_y_test.npy"))
 
-print("Finished loading image data")
+print("Finished loading image data", flush=True)
 
 #Load 3ch image data
 #X_train_3ch, y_train_3ch = (np.load(f"../data/{dataset}_3_X_train.npy"), np.load(f"../data/{dataset}_3_y_train.npy"))
 #X_val_3ch, y_val_3ch = (np.load(f"../data/{dataset}_3_X_val.npy"), np.load(f"../data/{dataset}_3_y_val.npy"))
 #X_test_3ch, y_test_3ch = (np.load(f"../data/{dataset}_3_X_test.npy"), np.load(f"../data/{dataset}_3_y_test.npy"))
 
-print("Finished loading data")
+print("Finished loading data", flush=True)
 
 set_random_seeds()
 
 def gen():
-    print("Generating data to train the meta-model")
+    print("Generating data to train the meta-model", flush=True)
 
     skf = StratifiedKFold(n_splits=5, shuffle=False, random_state=2)
     split = list(skf.split(X_train_csv, y_train_csv))
 
-    print("Generating SVM data")
+    print("Generating SVM data", flush=True)
 
     SVM_pred = np.array([]).reshape(0,3)
     SVM_target = np.array([]).reshape(0,1)
     for i, (train_index, test_index) in enumerate(split):
-        print(f"Starting fold {i}")
+        print(f"Starting fold {i}", flush=True)
         ss = StandardScaler()
         ss.fit(X_train_csv.iloc[train_index])
         svm_train = ss.transform(X_train_csv.iloc[train_index])
@@ -150,21 +150,21 @@ def eval():
     X_train_meta = np.load("../data/meta_features.npy")
     y_train_meta = np.load("../data/meta_target.npy").ravel()
 
-    print("Starting RF evaluation")
+    print("Starting RF evaluation", flush=True)
     rf = RandomForestClassifier(random_state=2, n_estimators=100, bootstrap=False)
     rf.fit(X_train_csv, y=y_train_csv)
 
     RF_pred_val = rf.predict(X_val_csv)
     RF_pred_test = rf.predict(X_test_csv)
-    print("RF performance on validation set")
+    print("RF performance on validation set", flush=True)
     print(classification_report(y_val_csv, RF_pred_val, digits=6))
-    print("RF performance on test set")
+    print("RF performance on test set", flush=True)
     print(classification_report(y_test_csv, RF_pred_test, digits=6))
     RF_proba_val = rf.predict_proba(X_val_csv)
     RF_proba_test = rf.predict_proba(X_test_csv)
 
 
-    print("Starting 12ch CNN evaluation")
+    print("Starting 12ch CNN evaluation", flush=True)
     weight_file = os.path.join(base_dir, 'trained_models', "0601_vgg_12_unl_w99_clf_ft1_full.h5")
     trainer = Trainer(
         backbone="vgg",
@@ -175,7 +175,7 @@ def eval():
         model_name=f'0301_vgg_12_unl_w99_clf_ft1_full',
         l2 = 0.0007 
     )
-    print("CNN performane on validation set")
+    print("CNN performane on validation set", flush=True)
     trainer.evaluate(X_val_12ch, y_val_12ch)
     print("CNN performance on test set")
     trainer.evaluate(X_test_12ch, y_test_12ch)
@@ -183,7 +183,7 @@ def eval():
     CNN12_proba_test = trainer.predict(X_test_12ch)
 
 
-    print("Starting SVM evaluation")
+    print("Starting SVM evaluation", flush=True)
 
     ss = StandardScaler()
     ss.fit(X_train_csv)
@@ -195,14 +195,14 @@ def eval():
 
     SVM_pred_val = svm.predict(t_X_val_csv)
     SVM_pred_test = svm.predict(t_X_test_csv)
-    print("SVM performance on validation set")
+    print("SVM performance on validation set", flush=True)
     print(classification_report(y_val_csv, SVM_pred_val, digits=6))
-    print("SVM performance on test set")
+    print("SVM performance on test set", flush=True)
     print(classification_report(y_test_csv, SVM_pred_test, digits=6))
     SVM_proba_val = svm.predict_proba(t_X_val_csv)
     SVM_proba_test = svm.predict_proba(t_X_test_csv)
 
-    print("Starting LR evaluation")
+    print("Starting LR evaluation", flush=True)
     lr = LogisticRegression(C=0.568, penalty='l2', solver='lbfgs')
     lr.fit(X_train_meta, y=y_train_meta)
 
@@ -214,9 +214,9 @@ def eval():
     LR_pred_val = lr.predict(X_val_meta)
     LR_pred_test = lr.predict(X_test_meta)
 
-    print("LR performance on validation set")
+    print("LR performance on validation set", flush=True)
     print(classification_report(y_val_meta, LR_pred_val, digits=6))
-    print("LR performance on test set")
+    print("LR performance on test set", flush=True)
     print(classification_report(y_test_meta, LR_pred_test, digits=6))
 
 
