@@ -64,6 +64,21 @@ def gen():
     skf = StratifiedKFold(n_splits=5, shuffle=False, random_state=2)
     split = list(skf.split(X_train_csv, y_train_csv))
 
+    print("Generating SVM data")
+
+    SVM_pred = np.array([]).reshape(0,3)
+    SVM_target = np.array([]).reshape(0,1)
+    for i, (train_index, test_index) in enumerate(split):
+        print(f"Starting fold {i}")
+        ss = StandardScaler()
+        ss.fit(X_train_csv.iloc[train_index])
+        svm_train = ss.transform(X_train_csv.iloc[train_index])
+        svm_eval = ss.transform(X_train_csv.iloc[test_index])
+        svm = SVC(decision_function_shape="ovo", kernel="rbf", C = 100, random_state=2, probability=True)
+        svm.fit(svm_train, y = y_train_csv.iloc[train_index])
+        SVM_pred = np.concatenate((SVM_pred,svm.predict_proba(svm_eval)), axis=0) 
+        SVM_target = np.concatenate((SVM_target,np.array([y_train_csv.iloc[test_index].values]).T), axis = 0)
+
     print("Generating RF data")
 
     RF_pred = np.array([]).reshape(0,3)
@@ -95,21 +110,6 @@ def gen():
         trainer.train(X_train_12ch[train_index,:,:,:], y_train_12ch[train_index,:], X_val_12ch, y_val_12ch, mode="finetune", epochs=100, runs=1)
         CNN12_pred = np.concatenate((CNN12_pred,trainer.predict(X_train_12ch[test_index,:,:,:])), axis=0)
         CNN12_target = np.concatenate((CNN12_target,y_train_12ch[test_index,:]), axis=0)
-
-    print("Generating SVM data")
-
-    SVM_pred = np.array([]).reshape(0,3)
-    SVM_target = np.array([]).reshape(0,1)
-    for i, (train_index, test_index) in enumerate(split):
-        print(f"Starting fold {i}")
-        ss = StandardScaler()
-        ss.fit(X_train_csv.iloc[train_index])
-        svm_train = ss.transform(X_train_csv.iloc[train_index])
-        svm_eval = ss.transform(X_train_csv.iloc[test_index])
-        svm = SVC(decision_function_shape="ovo", kernel="rbf", C = 100, random_state=2, probability=True)
-        svm.fit(svm_train, y = y_train_csv.iloc[train_index])
-        SVM_pred = np.concatenate((SVM_pred,svm.predict_proba(svm_eval)), axis=0) 
-        SVM_target = np.concatenate((SVM_target,np.array([y_train_csv.iloc[test_index].values]).T), axis = 0)
 
     meta_features = np.concatenate((CNN12_pred,RF_pred,SVM_pred), axis=1)
     meta_target = RF_target
