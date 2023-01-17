@@ -69,23 +69,23 @@ set_random_seeds()
 def gen():
     print("Generating data to train the meta-model")
 
-    # skf = StratifiedKFold(n_splits=5, shuffle=False, random_state=2)
-    # split = list(skf.split(X_train_csv, y_train_csv))
+    skf = StratifiedKFold(n_splits=5, shuffle=False, random_state=2)
+    split = list(skf.split(X_train_csv, y_train_csv))
 
-    # print("Generating SVM data")
+    print("Generating SVM data")
 
-    # SVM_pred = np.array([]).reshape(0,3)
-    # SVM_target = np.array([]).reshape(0,1)
-    # for i, (train_index, test_index) in enumerate(split):
-    #     print(f"Starting fold {i}")
-    #     ss = StandardScaler()
-    #     ss.fit(X_train_csv.iloc[train_index])
-    #     svm_train = ss.transform(X_train_csv.iloc[train_index])
-    #     svm_eval = ss.transform(X_train_csv.iloc[test_index])
-    #     svm = SVC(decision_function_shape="ovo", kernel="rbf", C = 100, random_state=2, probability=True)
-    #     svm.fit(svm_train, y = y_train_csv.iloc[train_index])
-    #     SVM_pred = np.concatenate((SVM_pred,svm.predict_proba(svm_eval)), axis=0) 
-    #     SVM_target = np.concatenate((SVM_target,np.array([y_train_csv.iloc[test_index].values]).T), axis = 0)
+    SVM_pred = np.array([]).reshape(0,3)
+    SVM_target = np.array([]).reshape(0,1)
+    for i, (train_index, test_index) in enumerate(split):
+        print(f"Starting fold {i}")
+        ss = StandardScaler()
+        ss.fit(X_train_csv.iloc[train_index])
+        svm_train = ss.transform(X_train_csv.iloc[train_index])
+        svm_eval = ss.transform(X_train_csv.iloc[test_index])
+        svm = SVC(decision_function_shape="ovo", kernel="rbf", C = 100, random_state=2, probability=True)
+        svm.fit(svm_train, y = y_train_csv.iloc[train_index])
+        SVM_pred = np.concatenate((SVM_pred,svm.predict_proba(svm_eval)), axis=0) 
+        SVM_target = np.concatenate((SVM_target,np.array([y_train_csv.iloc[test_index].values]).T), axis = 0)
 
     # print("Generating RF data")
 
