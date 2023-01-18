@@ -28,23 +28,25 @@ _feat = ['u_iso',
              'J0660_iso',
              'i_iso',
              'J0861_iso',
-             'z_iso']
+             'z_iso',
+             'w1mpro',
+             'w2mpro']
 
 print("Starting", flush=True)
 
 dataset = sys.argv[1]
 
-dataset_csv = pd.read_csv(dataset + ".csv")
+dataset_csv = pd.read_csv(dataset + ".csv").fillna(99)
 
 #Fixing csv data target labels (This is pretty ugly, find a better fix later)
 dataset_csv["target"] = dataset_csv["target"].apply(lambda c: CLASS_MAP[c])
 
 train_csv = dataset_csv[(dataset_csv.split=="train")]
-val_csv = dataset_csv[dataset_csv.split=="val"].fillna(99)
+val_csv = dataset_csv[dataset_csv.split=="val"]
 test_csv = dataset_csv[dataset_csv.split=="test"]
 
-with_wise_index = val_csv.w1mpro != 99
-no_wise_index = val_csv.w1mpro == 99
+with_wise_index_val = val_csv.w1mpro != 99
+no_wise_index_val = val_csv.w1mpro == 99
 
 print("Finished loading csv", flush=True)
 
@@ -172,10 +174,10 @@ def eval():
     print(classification_report(y_val_csv, RF_pred_val, digits=6))
 
     print("RF performance on validation (with_wise) set")
-    print(classification_report(y_val_csv[with_wise_index], RF_pred_val[with_wise_index], digits=6))
+    print(classification_report(y_val_csv[with_wise_index_val], RF_pred_val[with_wise_index_val], digits=6))
 
     print("RF performance on validation (no_wise) set")
-    print(classification_report(y_val_csv[no_wise_index], RF_pred_val[no_wise_index], digits=6))
+    print(classification_report(y_val_csv[no_wise_index_val], RF_pred_val[no_wise_index_val], digits=6))
 
     print("RF performance on test set", flush=True)
     print(classification_report(y_test_csv, RF_pred_test, digits=6))
@@ -198,10 +200,10 @@ def eval():
     trainer.evaluate(X_val_12ch, y_val_12ch)
 
     print("CNN performane on validation (with_wise) set", flush=True)
-    trainer.evaluate(X_val_12ch[with_wise_index], y_val_12ch[with_wise_index])
+    trainer.evaluate(X_val_12ch[with_wise_index_val], y_val_12ch[with_wise_index_val])
 
     print("CNN performane on validation (no_wise) set ", flush=True)
-    trainer.evaluate(X_val_12ch[no_wise_index], y_val_12ch[no_wise_index])
+    trainer.evaluate(X_val_12ch[no_wise_index_val], y_val_12ch[no_wise_index_val])
 
     print("CNN performance on test set")
     trainer.evaluate(X_test_12ch, y_test_12ch)
@@ -224,10 +226,10 @@ def eval():
     print(classification_report(y_val_meta, LR_pred_val, digits=6))
 
     print("LR performance on validation (with_wise) set")
-    print(classification_report(y_val_csv[with_wise_index], LR_pred_val[with_wise_index], digits=6))
+    print(classification_report(y_val_csv[with_wise_index_val], LR_pred_val[with_wise_index_val], digits=6))
 
     print("LR performance on validation (no_wise) set")
-    print(classification_report(y_val_csv[no_wise_index], LR_pred_val[no_wise_index], digits=6))
+    print(classification_report(y_val_csv[no_wise_index_val], LR_pred_val[no_wise_index_val], digits=6))
 
     print("LR performance on test set", flush=True)
     print(classification_report(y_test_meta, LR_pred_test, digits=6))
