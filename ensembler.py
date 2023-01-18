@@ -40,8 +40,11 @@ dataset_csv = pd.read_csv(dataset + ".csv")
 dataset_csv["target"] = dataset_csv["target"].apply(lambda c: CLASS_MAP[c])
 
 train_csv = dataset_csv[(dataset_csv.split=="train")]
-val_csv = dataset_csv[dataset_csv.split=="val"]
+val_csv = dataset_csv[dataset_csv.split=="val"].fillna(99)
 test_csv = dataset_csv[dataset_csv.split=="test"]
+
+with_wise_index = val_csv.w1mpro != 99
+no_wise_index = val_csv.w1mpro == 99
 
 print("Finished loading csv", flush=True)
 
@@ -113,7 +116,7 @@ def gen():
     np.save("../data/meta_features.npy",meta_features)
     np.save("../data/meta_target.npy",meta_target)
 
-def rgs():
+def wil():
 
     scoring = {
     'Precision_QSO': make_scorer(precision_score, average=None, labels=[2]),
@@ -167,6 +170,13 @@ def eval():
     RF_pred_test = rf.predict(X_test_csv)
     print("RF performance on validation set", flush=True)
     print(classification_report(y_val_csv, RF_pred_val, digits=6))
+
+    print("RF performance on validation (with_wise) set")
+    print(classification_report(y_val_csv[with_wise_index], RF_pred_val[with_wise_index], digits=6))
+
+    print("RF performance on validation (no_wise) set")
+    print(classification_report(y_val_csv[no_wise_index], RF_pred_val[no_wise_index], digits=6))
+
     print("RF performance on test set", flush=True)
     print(classification_report(y_test_csv, RF_pred_test, digits=6))
     RF_proba_val = rf.predict_proba(X_val_csv)
@@ -186,6 +196,13 @@ def eval():
     )
     print("CNN performane on validation set", flush=True)
     trainer.evaluate(X_val_12ch, y_val_12ch)
+
+    print("CNN performane on validation (with_wise) set", flush=True)
+    trainer.evaluate(X_val_12ch[with_wise_index], y_val_12ch[with_wise_index])
+
+    print("CNN performane on validation (no_wise) set ", flush=True)
+    trainer.evaluate(X_val_12ch[no_wise_index], y_val_12ch[no_wise_index])
+
     print("CNN performance on test set")
     trainer.evaluate(X_test_12ch, y_test_12ch)
     CNN12_proba_val = trainer.predict(X_val_12ch)
@@ -205,6 +222,13 @@ def eval():
 
     print("LR performance on validation set", flush=True)
     print(classification_report(y_val_meta, LR_pred_val, digits=6))
+
+    print("LR performance on validation (with_wise) set")
+    print(classification_report(y_val_csv[with_wise_index], LR_pred_val[with_wise_index], digits=6))
+
+    print("LR performance on validation (no_wise) set")
+    print(classification_report(y_val_csv[no_wise_index], LR_pred_val[no_wise_index], digits=6))
+
     print("LR performance on test set", flush=True)
     print(classification_report(y_test_meta, LR_pred_test, digits=6))
 
@@ -213,7 +237,7 @@ def eval():
 if __name__=="__main__":
     if "g" in sys.argv[2]:
         gen()
-    if "s" in sys.argv[2]:
-        rgs()
+    if "w" in sys.argv[2]:
+        wil()
     if "e" in sys.argv[2]:
         eval()
