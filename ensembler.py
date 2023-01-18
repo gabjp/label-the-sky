@@ -11,6 +11,7 @@ from sklearn.metrics import classification_report
 from sklearn.svm import SVC
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix, make_scorer, accuracy_score, precision_score, recall_score, f1_score
+from scipy.stats import wilcoxon
 
 base_dir = os.environ['HOME']
 CLASS_MAP = {0:2,1:1,2:0} # 0 - Galaxy, 1 - Star, 2 - Quasar
@@ -133,18 +134,22 @@ def rgs():
     skf = StratifiedKFold(n_splits=5, shuffle=False, random_state=2)
     rf = RandomForestClassifier(random_state=2, n_estimators=100, bootstrap=False)
 
-    results = cross_validate(estimator=rf, X=X_train_csv, y=y_train_csv, cv=skf, scoring=scoring, return_train_score=False)
+    resultsrf = cross_validate(estimator=rf, X=X_train_csv, y=y_train_csv, cv=skf, scoring=scoring, return_train_score=False)
     print("5-fold RF:")
-    for key in results:
-        print(f"{key}: {np.round(results[key]*100), 2}")
+    for key in resultsrf:
+        print(f"{key}: {np.round(resultsrf[key]*100, 2)}")
 
     skf = StratifiedKFold(n_splits=5, shuffle=False, random_state=2)
     lr = LogisticRegression(C=0.685, penalty='l1', solver='saga')
 
-    results = cross_validate(estimator=lr, X=X_train_meta, y=y_train_meta, cv=skf, scoring=scoring, return_train_score=False)
+    resultslr = cross_validate(estimator=lr, X=X_train_meta, y=y_train_meta, cv=skf, scoring=scoring, return_train_score=False)
     print("5-fold LR")
-    for key in results:
-        print(f"{key}: {np.round(results[key]*100, 2)}")
+    for key in resultslr:
+        print(f"{key}: {np.round(resultslr[key]*100, 2)}")
+
+    for key in resultslr:
+        w, p = wilcoxon(np.round(resultslr[key]*100, 2), np.round(resultsrf[key]*100, 2), mode='exact', alternative='greater')
+        print(f"{key}: W: {w} p: {p}")
 
     
 
