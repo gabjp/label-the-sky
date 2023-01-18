@@ -1,5 +1,5 @@
 from label_the_sky.training.trainer import Trainer, set_random_seeds
-from sklearn.model_selection import StratifiedKFold, RandomizedSearchCV
+from sklearn.model_selection import StratifiedKFold, RandomizedSearchCV, cross_validate
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import  LogisticRegression
 import sys
@@ -10,6 +10,7 @@ from scipy.stats import loguniform
 from sklearn.metrics import classification_report
 from sklearn.svm import SVC
 from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import confusion_matrix, make_scorer, accuracy_score, precision_score, recall_score, f1_score
 
 base_dir = os.environ['HOME']
 CLASS_MAP = {0:2,1:1,2:0} # 0 - Galaxy, 1 - Star, 2 - Quasar
@@ -112,21 +113,40 @@ def gen():
     np.save("../data/meta_target.npy",meta_target)
 
 def rgs():
+
+    scoring = {
+    'Precision_QSO': make_scorer(precision_score, average=None, labels=[2]),
+    'Recall_QSO': make_scorer(recall_score, average=None, labels=[2]),
+    'f1_QSO': make_scorer(f1_score, average=None, labels=[2]),
+    'Precision_STAR': make_scorer(precision_score, average=None, labels=[1]),
+    'Recall_STAR': make_scorer(recall_score, average=None, labels=[1]),
+    'f1_STAR': make_scorer(f1_score, average=None, labels=[1]),
+    'Precision_GAL': make_scorer(precision_score, average=None, labels=[0]),
+    'Recall_GAL': make_scorer(recall_score, average=None, labels=[0]),
+    'f1_GAL': make_scorer(f1_score, average=None, labels=[0]),
+    'f1_macro': make_scorer(f1_score, average='macro')
+}
+
     X_train_meta = np.load("../data/meta_features.npy")
     y_train_meta = np.load("../data/meta_target.npy").ravel()
 
-    space = dict()
-    space['solver'] = ['newton-cg', 'sag', 'saga', 'lbfgs']
-    space['penalty'] = ['l1', 'l2', 'elasticnet']
-    space['C'] = loguniform(1e-5, 100)
+    skf = StratifiedKFold(n_splits=5, shuffle=False, random_state=2)
+    rf = RandomForestClassifier(random_state=2, n_estimators=100, bootstrap=False)
 
+    results = cross_validate(estimator=rf, X=X_train_csv, y=y_train_csv, cv=skf, scoring=scoring, return_train_score=False)
+    print("5-fold RF:")
+    for key in results:
+        print(f"{key}: {np.round(np.mean(results[key]*100),2)}+-{np.round(np.std(results[key]*100),2)}")
 
-    lr = LogisticRegression()
-    search = RandomizedSearchCV(estimator=lr, param_distributions=space, n_iter=300, cv=3, verbose=1, random_state=2, n_jobs=-1, scoring="accuracy")
-    result = search.fit(X_train_meta,y_train_meta)
+    skf = StratifiedKFold(n_splits=5, shuffle=False, random_state=2)
+    lr = LogisticRegression(C=0.685, penalty='l1', solver='saga')
 
-    print('Best Score: %s' % result.best_score_)
-    print('Best Hyperparameters: %s' % result.best_params_)
+    results = cross_validate(estimator=lr, X=X_train_meta, y=y_train_meta, cv=skf, scoring=scoring, return_train_score=False)
+    print("5-fold LR")
+    for key in results:
+        print(f"{key}: {np.round(np.mean(results[key]*100),2)}+-{np.round(np.std(results[key]*100),2)}")
+
+    
 
 
 def eval():
