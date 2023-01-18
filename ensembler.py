@@ -136,7 +136,7 @@ def rgs():
     results = cross_validate(estimator=rf, X=X_train_csv, y=y_train_csv, cv=skf, scoring=scoring, return_train_score=False)
     print("5-fold RF:")
     for key in results:
-        print(f"{key}: {np.round(np.mean(results[key]*100),2)}+-{np.round(np.std(results[key]*100),2)}")
+        print(f"{key}: {np.round(results[key]*100)}")
 
     skf = StratifiedKFold(n_splits=5, shuffle=False, random_state=2)
     lr = LogisticRegression(C=0.685, penalty='l1', solver='saga')
@@ -144,7 +144,7 @@ def rgs():
     results = cross_validate(estimator=lr, X=X_train_meta, y=y_train_meta, cv=skf, scoring=scoring, return_train_score=False)
     print("5-fold LR")
     for key in results:
-        print(f"{key}: {np.round(np.mean(results[key]*100),2)}+-{np.round(np.std(results[key]*100),2)}")
+        print(f"{key}: {np.round(results[key]*100)}")
 
     
 
