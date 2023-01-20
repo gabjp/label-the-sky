@@ -85,13 +85,13 @@ def gen():
 
     print("Generating RF data", flush=True)
 
-    RF_pred = np.array([]).reshape(0,4)
+    RF_pred = np.array([]).reshape(0,3)
     RF_target = np.array([]).reshape(0,1)
     for i, (train_index, test_index) in enumerate(split):
         print(f"Starting fold {i}", flush=True)
         rf = RandomForestClassifier(random_state=2, n_estimators=100, bootstrap=False)
         rf.fit(X_train_csv.iloc[train_index], y = y_train_csv.iloc[train_index])
-        features = np.concatenate((rf.predict_proba(X_train_csv.iloc[test_index]),np.array([(X_train_csv.iloc[test_index].r_iso.values)/22]).T), axis=1)
+        features = np.concatenate((rf.predict_proba(X_train_csv.iloc[test_index])), axis=1)
         RF_pred = np.concatenate((RF_pred,features), axis=0) 
         RF_target = np.concatenate((RF_target,np.array([y_train_csv.iloc[test_index].values]).T), axis = 0)
 
@@ -168,6 +168,8 @@ def eval():
     #Load Meta-model data
     X_train_meta = np.load("../data/meta_features.npy")
     y_train_meta = np.load("../data/meta_target.npy").ravel()
+    X_train_meta = X_train_meta[:,0:7]
+    np.save("../data/meta_features.npy",X_train_meta)
     y_train_meta = keras.utils.to_categorical(y_train_meta, num_classes=3)
 
     print("Starting RF evaluation", flush=True)
@@ -216,16 +218,15 @@ def eval():
     CNN12_proba_val = trainer.predict(X_val_12ch)
     CNN12_proba_test = trainer.predict(X_test_12ch)
 
-    X_val_meta = np.concatenate((CNN12_proba_val, RF_proba_val, np.array([val_csv.r_iso.values/22]).T), axis=1)
-    X_test_meta = np.concatenate((CNN12_proba_test, RF_proba_test, np.array([test_csv.r_iso.values/22]).T), axis=1)
+    X_val_meta = np.concatenate((CNN12_proba_val, RF_proba_val), axis=1)
+    X_test_meta = np.concatenate((CNN12_proba_test, RF_proba_test), axis=1)
     y_val_meta = y_val_12ch
     y_test_meta = y_test_12ch
     
 
     print("Starting meta-model evaluation", flush=True)
     meta = keras.models.Sequential()
-    meta.add(keras.layers.Input(shape=(7,)))
-    meta.add(keras.layers.Dense(500, activation = "relu"))
+    meta.add(keras.layers.Input(shape=(6,)))
     meta.add(keras.layers.Dense(300, activation = "relu"))
     meta.add(keras.layers.Dense(100, activation = "relu"))
     meta.add(keras.layers.Dense(3, activation = "softmax"))
