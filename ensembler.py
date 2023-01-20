@@ -216,8 +216,8 @@ def eval():
     CNN12_proba_val = trainer.predict(X_val_12ch)
     CNN12_proba_test = trainer.predict(X_test_12ch)
 
-    X_val_meta = np.concatenate((CNN12_proba_val, RF_proba_val, np.array([X_val_12ch.r_iso.values]).T), axis=1)
-    X_test_meta = np.concatenate((CNN12_proba_test, RF_proba_test, np.array([X_test_12ch.r_iso.values]).T), axis=1)
+    X_val_meta = np.concatenate((CNN12_proba_val, RF_proba_val, np.array([val_csv.r_iso.values]).T), axis=1)
+    X_test_meta = np.concatenate((CNN12_proba_test, RF_proba_test, np.array([test_csv.r_iso.values]).T), axis=1)
     y_val_meta = y_val_12ch
     y_test_meta = y_test_12ch
     
