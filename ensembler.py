@@ -15,6 +15,7 @@ from scipy.stats import wilcoxon
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.optimizers import Adam
+from sklearn.utils.class_weight import compute_class_weight
 
 base_dir = os.environ['HOME']
 CLASS_MAP = {0:2,1:1,2:0} # 0 - Galaxy, 1 - Star, 2 - Quasar
@@ -236,7 +237,8 @@ def eval():
     meta.add(keras.layers.Dense(3, activation = "softmax"))
 
     meta.compile(loss = "categorical_crossentropy", optimizer = Adam(lr=1e-5), metrics = ["accuracy"])
-    meta.fit(X_train_meta, y_train_meta,validation_data = (X_val_meta, y_val_meta), batch_size =32, verbose =2, epochs=20)
+    meta.fit(X_train_meta, y_train_meta,validation_data = (X_val_meta, y_val_meta), batch_size =32, verbose =2, epochs=20, 
+            class_weight=compute_class_weight(class_weight='balanced', classes=[0,1,2], y=np.argmax(y_train_meta, axis=1)))
 
     predict_y_val = np.argmax(meta.predict(X_val_meta), axis=1)
     predict_y_test = np.argmax(meta.predict(X_test_meta), axis=1)
