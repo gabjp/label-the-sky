@@ -233,9 +233,8 @@ def eval():
     print("Starting meta-model evaluation", flush=True)
     meta = keras.models.Sequential()
     meta.add(keras.layers.Input(shape=(6,)))
-    meta.add(keras.layers.Dense(256, activation = "relu"))
-    meta.add(keras.layers.Dense(128, activation = "relu"))
-    meta.add(keras.layers.Dense(64, activation = "relu"))
+    meta.add(keras.layers.Dense(300, activation = "relu"))
+    meta.add(keras.layers.Dense(100, activation = "relu"))
     meta.add(keras.layers.Dense(3, activation = "softmax"))
 
     ss = StandardScaler()
@@ -245,7 +244,7 @@ def eval():
     X_test_meta = ss.transform(X_test_meta)
 
     meta.compile(loss = "categorical_crossentropy", optimizer = Adam(lr=1e-3), metrics = ["accuracy"])
-    meta.fit(X_train_meta, y_train_meta,validation_data = (X_val_meta, y_val_meta), batch_size =32, verbose =2, epochs=20, 
+    meta.fit(X_train_meta, y_train_meta,validation_data = (X_val_meta, y_val_meta), batch_size =32, verbose =2, epochs=15, 
             class_weight=compute_class_weight(class_weight='balanced', classes=[0,1,2], y=np.argmax(y_train_meta, axis=1)))
 
     predict_y_val = np.argmax(meta.predict(X_val_meta), axis=1)
