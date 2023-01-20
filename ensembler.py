@@ -237,7 +237,7 @@ def eval():
     meta.add(keras.layers.Dense(64, activation = "relu"))
     meta.add(keras.layers.Dense(3, activation = "softmax"))
 
-    meta.compile(loss = "categorical_crossentropy", optimizer = Adam(lr=1e-5), metrics = ["accuracy"])
+    meta.compile(loss = "categorical_crossentropy", optimizer = Adam(lr=1e-4), metrics = ["accuracy"])
     meta.fit(X_train_meta, y_train_meta,validation_data = (X_val_meta, y_val_meta), batch_size =32, verbose =2, epochs=20, 
             class_weight=compute_class_weight(class_weight='balanced', classes=[0,1,2], y=np.argmax(y_train_meta, axis=1)))
 
