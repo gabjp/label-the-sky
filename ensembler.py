@@ -166,7 +166,7 @@ def eval():
     #Load Meta-model data
     X_train_meta = np.load("../data/meta_features.npy")
     y_train_meta = np.load("../data/meta_target.npy").ravel()
-    y_train_meta = keras.utils.np_utils.to_categorical(y_train_meta, num_classes=3)
+    y_train_meta = keras.utils.to_categorical(y_train_meta, num_classes=3)
 
     print("Starting RF evaluation", flush=True)
     rf = RandomForestClassifier(random_state=2, n_estimators=100, bootstrap=False)
