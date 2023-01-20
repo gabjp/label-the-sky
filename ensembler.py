@@ -168,7 +168,7 @@ def eval():
     #Load Meta-model data
     X_train_meta = np.load("../data/meta_features.npy")
     y_train_meta = np.load("../data/meta_target.npy").ravel()
-    X_train_meta = X_train_meta[:,0:7]
+    X_train_meta = X_train_meta[:,0:6]
     np.save("../data/meta_features.npy",X_train_meta)
     y_train_meta = keras.utils.to_categorical(y_train_meta, num_classes=3)
 
