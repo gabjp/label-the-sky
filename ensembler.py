@@ -235,7 +235,7 @@ def eval():
     X_val_meta = ss.transform(X_val_meta)
     X_test_meta = ss.transform(X_test_meta)
 
-    meta.compile(loss = "categorical_crossentropy", optimizer = Adam(lr=1e-3), metrics = ["accuracy"])
+    meta.compile(loss = "categorical_crossentropy", optimizer = Adam(lr=1e-2), metrics = ["accuracy"])
     meta.fit(X_train_meta, y_train_meta,validation_data = (X_val_meta, y_val_meta), batch_size =32, verbose =2, epochs=15, 
             class_weight=compute_class_weight(class_weight='balanced', classes=[0,1,2], y=np.argmax(y_train_meta, axis=1)))
 
