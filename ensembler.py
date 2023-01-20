@@ -91,7 +91,7 @@ def gen():
         print(f"Starting fold {i}", flush=True)
         rf = RandomForestClassifier(random_state=2, n_estimators=100, bootstrap=False)
         rf.fit(X_train_csv.iloc[train_index], y = y_train_csv.iloc[train_index])
-        features = np.concatenate((rf.predict_proba(X_train_csv.iloc[test_index]),(X_train_csv.iloc[test_index].r_iso.values)/22), axis=1)
+        features = np.concatenate((rf.predict_proba(X_train_csv.iloc[test_index]),np.array([(X_train_csv.iloc[test_index].r_iso.values)/22]).T), axis=1)
         RF_pred = np.concatenate((RF_pred,features), axis=0) 
         RF_target = np.concatenate((RF_target,np.array([y_train_csv.iloc[test_index].values]).T), axis = 0)
 
