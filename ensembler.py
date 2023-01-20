@@ -240,6 +240,7 @@ def eval():
 
     ss = StandardScaler()
     ss.fit(X_train_meta)
+    X_train_meta = ss.transform(X_train_meta)
     X_val_meta = ss.transform(X_val_meta)
     X_test_meta = ss.transform(X_test_meta)
 
