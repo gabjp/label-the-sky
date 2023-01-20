@@ -85,13 +85,14 @@ def gen():
 
     print("Generating RF data", flush=True)
 
-    RF_pred = np.array([]).reshape(0,3)
+    RF_pred = np.array([]).reshape(0,4)
     RF_target = np.array([]).reshape(0,1)
     for i, (train_index, test_index) in enumerate(split):
         print(f"Starting fold {i}", flush=True)
         rf = RandomForestClassifier(random_state=2, n_estimators=100, bootstrap=False)
         rf.fit(X_train_csv.iloc[train_index], y = y_train_csv.iloc[train_index])
-        RF_pred = np.concatenate((RF_pred,rf.predict_proba(X_train_csv.iloc[test_index])), axis=0) 
+        features = np.concatenate((rf.predict_proba(X_train_csv.iloc[test_index]),(X_train_csv.iloc[test_index].r_iso.values)/22), axis=1)
+        RF_pred = np.concatenate((RF_pred,features), axis=0) 
         RF_target = np.concatenate((RF_target,np.array([y_train_csv.iloc[test_index].values]).T), axis = 0)
 
 
@@ -215,24 +216,15 @@ def eval():
     CNN12_proba_val = trainer.predict(X_val_12ch)
     CNN12_proba_test = trainer.predict(X_test_12ch)
 
-    # print("Starting LR evaluation", flush=True)
-    # lr = LogisticRegression(C=0.685, penalty='l1', solver='saga')
-    # lr.fit(X_train_meta, y=y_train_meta)
-
     X_val_meta = np.concatenate((CNN12_proba_val, RF_proba_val), axis=1)
     X_test_meta = np.concatenate((CNN12_proba_test, RF_proba_test), axis=1)
-    # y_val_meta = y_val_csv.values
-    # y_test_meta = y_test_csv.values
     y_val_meta = y_val_12ch
     y_test_meta = y_test_12ch
     
 
-    # LR_pred_val = lr.predict(X_val_meta)
-    # LR_pred_test = lr.predict(X_test_meta)
-
     print("Starting meta-model evaluation", flush=True)
     meta = keras.models.Sequential()
-    meta.add(keras.layers.Input(shape=(6,)))
+    meta.add(keras.layers.Input(shape=(7,)))
     meta.add(keras.layers.Dense(300, activation = "relu"))
     meta.add(keras.layers.Dense(100, activation = "relu"))
     meta.add(keras.layers.Dense(3, activation = "softmax"))
