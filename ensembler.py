@@ -12,6 +12,9 @@ from sklearn.svm import SVC
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix, make_scorer, accuracy_score, precision_score, recall_score, f1_score
 from scipy.stats import wilcoxon
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras.optimizers import Adam
 
 base_dir = os.environ['HOME']
 CLASS_MAP = {0:2,1:1,2:0} # 0 - Galaxy, 1 - Star, 2 - Quasar
@@ -163,6 +166,7 @@ def eval():
     #Load Meta-model data
     X_train_meta = np.load("../data/meta_features.npy")
     y_train_meta = np.load("../data/meta_target.npy").ravel()
+    y_train_meta = keras.utils.np_utils.to_categorical(y_train_meta, num_classes=3)
 
     print("Starting RF evaluation", flush=True)
     rf = RandomForestClassifier(random_state=2, n_estimators=100, bootstrap=False)
@@ -210,29 +214,45 @@ def eval():
     CNN12_proba_val = trainer.predict(X_val_12ch)
     CNN12_proba_test = trainer.predict(X_test_12ch)
 
-    print("Starting LR evaluation", flush=True)
-    lr = LogisticRegression(C=0.685, penalty='l1', solver='saga')
-    lr.fit(X_train_meta, y=y_train_meta)
+    # print("Starting LR evaluation", flush=True)
+    # lr = LogisticRegression(C=0.685, penalty='l1', solver='saga')
+    # lr.fit(X_train_meta, y=y_train_meta)
 
     X_val_meta = np.concatenate((CNN12_proba_val, RF_proba_val), axis=1)
     X_test_meta = np.concatenate((CNN12_proba_test, RF_proba_test), axis=1)
-    y_val_meta = y_val_csv.values
-    y_test_meta = y_test_csv.values
+    # y_val_meta = y_val_csv.values
+    # y_test_meta = y_test_csv.values
+    y_val_meta = y_val_12ch
+    y_test_meta = y_test_12ch
+    
 
-    LR_pred_val = lr.predict(X_val_meta)
-    LR_pred_test = lr.predict(X_test_meta)
+    # LR_pred_val = lr.predict(X_val_meta)
+    # LR_pred_test = lr.predict(X_test_meta)
 
-    print("LR performance on validation set", flush=True)
-    print(classification_report(y_val_meta, LR_pred_val, digits=6))
+    print("Starting meta-model evaluation", flush=True)
+    meta = keras.models.Sequential()
+    meta.add(keras.layers.Input(shape=(6,)))
+    meta.add(keras.layers.Dense(128, activation = "relu"))
+    meta.add(keras.layers.Dense(10, activation = "softmax"))
 
-    print("LR performance on validation (with_wise) set")
-    print(classification_report(y_val_csv[with_wise_index_val], LR_pred_val[with_wise_index_val], digits=6))
+    meta.compile(loss = "categorical_crossentropy", optimizer = Adam(lr=1e-5), metrics = ["accuracy"])
+    meta.fit(X_train_meta, y_train_meta,validation_data = (X_val_meta, y_val_meta), batch_size =32, verbose =2, epochs=20)
 
-    print("LR performance on validation (no_wise) set")
-    print(classification_report(y_val_csv[no_wise_index_val], LR_pred_val[no_wise_index_val], digits=6))
+    predict_y_val = np.argmax(meta.predict(X_val_meta), axis=1)
+    predict_y_test = np.argmax(meta.predict(X_test_meta), axis=1)
 
-    print("LR performance on test set", flush=True)
-    print(classification_report(y_test_meta, LR_pred_test, digits=6))
+    print("Meta-model performance on validation set", flush=True)
+    print(classification_report(y_val_meta, predict_y_val, digits=6))
+
+    print("Meta-model performance on validation (with_wise) set")
+    print(classification_report(y_val_csv[with_wise_index_val], predict_y_val[with_wise_index_val], digits=6))
+
+    print("Meta-model performance on validation (no_wise) set")
+    print(classification_report(y_val_csv[no_wise_index_val], predict_y_val[no_wise_index_val], digits=6))
+
+    print("Meta-model performance on test set", flush=True)
+    print(classification_report(y_test_meta, predict_y_test, digits=6)) 
+
 
 
 
