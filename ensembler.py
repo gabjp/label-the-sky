@@ -233,8 +233,9 @@ def eval():
     print("Starting meta-model evaluation", flush=True)
     meta = keras.models.Sequential()
     meta.add(keras.layers.Input(shape=(6,)))
-    meta.add(keras.layers.Dense(300, activation = "relu"))
-    meta.add(keras.layers.Dense(100, activation = "relu"))
+    meta.add(keras.layers.Dense(256, activation = "relu"))
+    meta.add(keras.layers.Dense(128, activation = "relu"))
+    meta.add(keras.layers.Dense(64, activation = "relu"))
     meta.add(keras.layers.Dense(3, activation = "softmax"))
 
     meta.compile(loss = "categorical_crossentropy", optimizer = Adam(lr=1e-3), metrics = ["accuracy"])
