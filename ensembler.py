@@ -262,6 +262,8 @@ def eval():
                         mode='min',
                         save_best_only=True)])
 
+    meta.load_weights("../trained_models/meta-model_checkpoint.h5")
+
     predict_y_val = np.argmax(meta.predict(X_val_meta), axis=1)
     predict_y_test = np.argmax(meta.predict(X_test_meta), axis=1)
     y_val_meta = np.argmax(y_val_meta, axis=1)
