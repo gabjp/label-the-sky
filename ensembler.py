@@ -148,6 +148,7 @@ def wil(val_x, val_y):
     X_train_meta = np.load("../data/meta_features.npy")
     y_train_meta = np.load("../data/meta_target.npy").ravel()
 
+    X_train_csv = X_train_csv.values
 
     skf = StratifiedKFold(n_splits=5, shuffle=False)
     split_csv = skf.split(X_train_csv, y_train_csv)
@@ -156,7 +157,6 @@ def wil(val_x, val_y):
     RF_values = []
     META_values = []
 
-    X_train_csv = X_train_csv.values
 
     for i, (train_index, test_index) in enumerate(split_csv):
         print(f"RF fold {i}", flush=True)
@@ -193,7 +193,7 @@ def wil(val_x, val_y):
 
         meta.load_weights("../trained_models/meta-model_checkpoint.h5")
         fid = [num for num in test_index if X_train_meta[num,6]==1]
-        run = classification_report(y_train_meta[fid], np.argmax(meta.predict(X_train_meta[fid])), digits=6, target_names=target_names, output_dict=True)
+        run = classification_report(y_train_meta[fid], np.argmax(meta.predict(X_train_meta[fid, 0:6])), digits=6, target_names=target_names, output_dict=True)
         META_values.append(run)
 
         print(RF_values)
