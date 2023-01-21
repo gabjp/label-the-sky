@@ -20,6 +20,8 @@ from sklearn.utils.class_weight import compute_class_weight
 base_dir = os.environ['HOME']
 CLASS_MAP = {0:2,1:1,2:0} # 0 - Galaxy, 1 - Star, 2 - Quasar
 
+target_names = ["GALAXY", "STAR", "QSO"]
+
 _morph = ['FWHM_n', 'A', 'B', 'KRON_RADIUS']
 _feat = ['u_iso',
              'J0378_iso',
@@ -87,13 +89,16 @@ def gen():
 
     print("Generating RF data", flush=True)
 
-    RF_pred = np.array([]).reshape(0,3)
+    RF_pred = np.array([]).reshape(0,4)
     RF_target = np.array([]).reshape(0,1)
     for i, (train_index, test_index) in enumerate(split):
         print(f"Starting fold {i}", flush=True)
         rf = RandomForestClassifier(random_state=2, n_estimators=100, bootstrap=False)
         rf.fit(X_train_csv.iloc[train_index], y = y_train_csv.iloc[train_index])
-        features = np.concatenate((rf.predict_proba(X_train_csv.iloc[test_index])), axis=1)
+
+        #Salva flag wise:
+        features = np.concatenate((rf.predict_proba(X_train_csv.iloc[test_index]), np.array([X_train_csv.iloc[test_index].w1mpro.values == 99]).T), axis=1)
+
         RF_pred = np.concatenate((RF_pred,features), axis=0) 
         RF_target = np.concatenate((RF_target,np.array([y_train_csv.iloc[test_index].values]).T), axis = 0)
 
@@ -125,50 +130,82 @@ def gen():
     np.save("../data/meta_features.npy",meta_features)
     np.save("../data/meta_target.npy",meta_target)
 
-def wil():
+def wil(val_x, val_y):
 
     scoring = {
-    'Precision_QSO': make_scorer(precision_score, average=None, labels=[2]),
-    'Recall_QSO': make_scorer(recall_score, average=None, labels=[2]),
-    'f1_QSO': make_scorer(f1_score, average=None, labels=[2]),
+    'Precision_QSO': make_scorer(precision_score, average=None, labels=[0]),
+    'Recall_QSO': make_scorer(recall_score, average=None, labels=[0]),
+    'f1_QSO': make_scorer(f1_score, average=None, labels=[0]),
     'Precision_STAR': make_scorer(precision_score, average=None, labels=[1]),
     'Recall_STAR': make_scorer(recall_score, average=None, labels=[1]),
     'f1_STAR': make_scorer(f1_score, average=None, labels=[1]),
-    'Precision_GAL': make_scorer(precision_score, average=None, labels=[0]),
-    'Recall_GAL': make_scorer(recall_score, average=None, labels=[0]),
-    'f1_GAL': make_scorer(f1_score, average=None, labels=[0]),
+    'Precision_GAL': make_scorer(precision_score, average=None, labels=[2]),
+    'Recall_GAL': make_scorer(recall_score, average=None, labels=[2]),
+    'f1_GAL': make_scorer(f1_score, average=None, labels=[2]),
     'f1_macro': make_scorer(f1_score, average='macro')
 }
 
     X_train_meta = np.load("../data/meta_features.npy")
     y_train_meta = np.load("../data/meta_target.npy").ravel()
 
-    skf = StratifiedKFold(n_splits=5, shuffle=False, random_state=2)
-    rf = RandomForestClassifier(random_state=2, n_estimators=100, bootstrap=False)
 
-    resultsrf = cross_validate(estimator=rf, X=X_train_csv, y=y_train_csv, cv=skf, scoring=scoring, return_train_score=False)
-    print("5-fold RF:")
-    for key in resultsrf:
-        print(f"{key}: {np.round(resultsrf[key]*100, 2)}")
+    skf = StratifiedKFold(n_splits=5, shuffle=False)
+    split_csv = skf.split(X_train_csv, y_train_csv)
+    split_meta = skf.split(X_train_meta, y_train_meta)
 
-    skf = StratifiedKFold(n_splits=5, shuffle=False, random_state=2)
-    lr = LogisticRegression(C=0.685, penalty='l1', solver='saga')
+    RF_values = []
+    META_values = []
 
-    resultslr = cross_validate(estimator=lr, X=X_train_meta, y=y_train_meta, cv=skf, scoring=scoring, return_train_score=False)
-    print("5-fold LR")
-    for key in resultslr:
-        print(f"{key}: {np.round(resultslr[key]*100, 2)}")
+    for i, (train_index, test_index) in enumerate(split_csv):
+        print(f"RF fold {i}", flush=True)
+        rf = RandomForestClassifier(random_state=2, n_estimators=100, bootstrap=False)
+        rf.fit(X_train_csv[train_index, 0:16], y=y_train_csv[train_index])
+        fid = [num for num in test_index if X_train_csv[num,-1]==99]
+        run = classification_report(y_train_csv[fid], rf.predict(X_train_csv[fid, 0:16]), digits=6, target_names=target_names, output_dict=True)
+        RF_values.append(run)
 
-    for key in resultslr:
-        w, p = wilcoxon(np.round(resultslr[key]*100, 2), np.round(resultsrf[key]*100, 2), mode='exact', alternative='greater')
-        print(f"{key}: W: {w} p: {p}")
+    for i, (train_index, test_index) in enumerate(split_meta):
+        print(f"meta fold {i}", flush=True)
+
+        meta = keras.models.Sequential()
+        meta.add(keras.layers.Input(shape=(6,)))
+        meta.add(keras.layers.Dense(300, activation = "relu"))
+        meta.add(keras.layers.Dense(100, activation = "relu"))
+        meta.add(keras.layers.Dense(3, activation = "softmax"))
+
+        ss = StandardScaler()
+        ss.fit(X_train_meta[train_index])
+        train = ss.transform(X_train_meta[train_index,0:6])
+        test = ss.transform(X_train_meta[test_index,0:6])
+        val = ss.transform(val_x)
+
+        meta.compile(loss = "categorical_crossentropy", optimizer = Adam(lr=1e-3), metrics = ["accuracy"])
+        meta.fit(train, y_train_meta[train_index],validation_data = (val, val_y), batch_size =32, verbose =2, epochs=15, 
+                class_weight=compute_class_weight(class_weight='balanced', classes=[0,1,2], y=np.argmax(y_train_meta, axis=1)),
+                callbacks = [tf.keras.callbacks.ModelCheckpoint(
+                            filepath="../trained_models/meta-model_checkpoint.h5",
+                            save_weights_only=True,
+                            monitor='val_loss',
+                            mode='min',
+                            save_best_only=True)])
+
+        meta.load_weights("../trained_models/meta-model_checkpoint.h5")
+        fid = [num for num in test_index if X_train_meta[num,6]==1]
+        run = classification_report(y_train_meta[fid], np.argmax(meta.predict(X_train_meta[fid])), digits=6, target_names=target_names, output_dict=True)
+        META_values.append(run)
+
+        print(RF_values)
+        print(META_values)
+
+    
+
 
     
 
 
 def eval():
     #Load Meta-model data
-    X_train_meta = np.load("../data/meta_features.npy")
+    X_train_meta = np.load("../data/meta_features.npy")[:,0:6]  # Slice está aqui pois a última coluna possui flag se tem dado wise
     y_train_meta = np.load("../data/meta_target.npy").ravel()
     y_train_meta = keras.utils.to_categorical(y_train_meta, num_classes=3)
 
@@ -179,22 +216,22 @@ def eval():
     RF_pred_val = rf.predict(X_val_csv)
     RF_pred_test = rf.predict(X_test_csv)
     print("RF performance on validation set", flush=True)
-    print(classification_report(y_val_csv, RF_pred_val, digits=6))
+    print(classification_report(y_val_csv, RF_pred_val, digits=6, target_names=target_names))
 
     print("RF performance on validation (with_wise) set")
-    print(classification_report(y_val_csv[with_wise_index_val], RF_pred_val[with_wise_index_val], digits=6))
+    print(classification_report(y_val_csv[with_wise_index_val], RF_pred_val[with_wise_index_val], digits=6, target_names=target_names))
 
     print("RF performance on validation (no_wise) set")
-    print(classification_report(y_val_csv[no_wise_index_val], RF_pred_val[no_wise_index_val], digits=6))
+    print(classification_report(y_val_csv[no_wise_index_val], RF_pred_val[no_wise_index_val], digits=6, target_names=target_names))
 
     print("RF performance on test set", flush=True)
-    print(classification_report(y_test_csv, RF_pred_test, digits=6))
+    print(classification_report(y_test_csv, RF_pred_test, digits=6, target_names=target_names))
 
     print("RF performance on test (with_wise) set", flush=True)
-    print(classification_report(y_test_csv[with_wise_index_test], RF_pred_test[with_wise_index_test], digits=6))
+    print(classification_report(y_test_csv[with_wise_index_test], RF_pred_test[with_wise_index_test], digits=6, target_names=target_names))
 
     print("RF performance on test (no_wise) set", flush=True)
-    print(classification_report(y_test_csv[no_wise_index_test], RF_pred_test[no_wise_index_test], digits=6))
+    print(classification_report(y_test_csv[no_wise_index_test], RF_pred_test[no_wise_index_test], digits=6, target_names=target_names))
 
 
     RF_proba_val = rf.predict_proba(X_val_csv)
@@ -246,6 +283,8 @@ def eval():
     meta.add(keras.layers.Dense(100, activation = "relu"))
     meta.add(keras.layers.Dense(3, activation = "softmax"))
 
+    untransformed_Xval_meta = X_val_meta  # APENAS PARA O TESTE DE WILCOXON. TIRAR ISSO E O RETURN
+
     ss = StandardScaler()
     ss.fit(X_train_meta)
     X_train_meta = ss.transform(X_train_meta)
@@ -270,22 +309,24 @@ def eval():
     y_test_meta = np.argmax(y_test_meta, axis=1)
 
     print("Meta-model performance on validation set", flush=True)
-    print(classification_report(y_val_meta, predict_y_val, digits=6))
+    print(classification_report(y_val_meta, predict_y_val, digits=6, target_names=target_names))
 
     print("Meta-model performance on validation (with_wise) set")
-    print(classification_report(y_val_csv[with_wise_index_val], predict_y_val[with_wise_index_val], digits=6))
+    print(classification_report(y_val_csv[with_wise_index_val], predict_y_val[with_wise_index_val], digits=6, target_names=target_names))
 
     print("Meta-model performance on validation (no_wise) set")
-    print(classification_report(y_val_csv[no_wise_index_val], predict_y_val[no_wise_index_val], digits=6))
+    print(classification_report(y_val_csv[no_wise_index_val], predict_y_val[no_wise_index_val], digits=6, target_names=target_names))
 
     print("Meta-model performance on test set", flush=True)
-    print(classification_report(y_test_meta, predict_y_test, digits=6)) 
+    print(classification_report(y_test_meta, predict_y_test, digits=6, target_names=target_names)) 
 
     print("Meta-model performance on test (with_wise) set", flush=True)
-    print(classification_report(y_test_meta[with_wise_index_test], predict_y_test[with_wise_index_test], digits=6)) 
+    print(classification_report(y_test_meta[with_wise_index_test], predict_y_test[with_wise_index_test], digits=6, target_names=target_names)) 
 
     print("Meta-model performance on test (no_wise) set", flush=True)
-    print(classification_report(y_test_meta[no_wise_index_test], predict_y_test[no_wise_index_test], digits=6)) 
+    print(classification_report(y_test_meta[no_wise_index_test], predict_y_test[no_wise_index_test], digits=6, target_names=target_names)) 
+
+    return untransformed_Xval_meta, y_val_meta # Existe apenas para passar as features para o teste de wilcoxon
 
 
 
@@ -293,7 +334,7 @@ def eval():
 if __name__=="__main__":
     if "g" in sys.argv[2]:
         gen()
-    if "w" in sys.argv[2]:
-        wil()
     if "e" in sys.argv[2]:
-        eval()
+        X_val,y_val = eval()
+    if "w" in sys.argv[2]:
+        wil(X_val, y_val)
