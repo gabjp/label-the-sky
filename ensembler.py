@@ -156,6 +156,8 @@ def wil(val_x, val_y):
     RF_values = []
     META_values = []
 
+    print(X_train_csv)
+
     for i, (train_index, test_index) in enumerate(split_csv):
         print(f"RF fold {i}", flush=True)
         rf = RandomForestClassifier(random_state=2, n_estimators=100, bootstrap=False)
