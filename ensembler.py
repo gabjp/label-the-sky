@@ -253,7 +253,7 @@ def eval():
     X_test_meta = ss.transform(X_test_meta)
 
     meta.compile(loss = "categorical_crossentropy", optimizer = Adam(lr=1e-3), metrics = ["accuracy"])
-    meta.fit(X_train_meta, y_train_meta,validation_data = (X_val_meta, y_val_meta), batch_size =32, verbose =2, epochs=15, 
+    meta.fit(X_train_meta, y_train_meta,validation_data = (X_val_meta, y_val_meta), batch_size =32, verbose =2, epochs=30, 
             class_weight=compute_class_weight(class_weight='balanced', classes=[0,1,2], y=np.argmax(y_train_meta, axis=1)),
             callbacks = [tf.keras.callbacks.ModelCheckpoint(
                         filepath="../trained_models/meta-model_checkpoint.h5",
