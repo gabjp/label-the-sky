@@ -51,6 +51,8 @@ test_csv = dataset_csv[dataset_csv.split=="test"]
 
 with_wise_index_val = val_csv.w1mpro != 99
 no_wise_index_val = val_csv.w1mpro == 99
+with_wise_index_test = test_csv.w1mpro != 99
+no_wise_index_test = test_csv.w1mpro == 99
 
 print("Finished loading csv", flush=True)
 
@@ -187,6 +189,14 @@ def eval():
 
     print("RF performance on test set", flush=True)
     print(classification_report(y_test_csv, RF_pred_test, digits=6))
+
+    print("RF performance on test (with_wise) set", flush=True)
+    print(classification_report(y_test_csv[with_wise_index_test], RF_pred_test[with_wise_index_test], digits=6))
+
+    print("RF performance on test (no_wise) set", flush=True)
+    print(classification_report(y_test_csv[no_wise_index_test], RF_pred_test[no_wise_index_test], digits=6))
+
+
     RF_proba_val = rf.predict_proba(X_val_csv)
     RF_proba_test = rf.predict_proba(X_test_csv)
 
@@ -213,6 +223,13 @@ def eval():
 
     print("CNN performance on test set")
     trainer.evaluate(X_test_12ch, y_test_12ch)
+
+    print("CNN performance on test (with_wise) set")
+    trainer.evaluate(X_test_12ch[with_wise_index_test], y_test_12ch[with_wise_index_test])
+
+    print("CNN performance on test (no_wise) set")
+    trainer.evaluate(X_test_12ch[no_wise_index_test], y_test_12ch[no_wise_index_test])
+
     CNN12_proba_val = trainer.predict(X_val_12ch)
     CNN12_proba_test = trainer.predict(X_test_12ch)
 
@@ -237,7 +254,13 @@ def eval():
 
     meta.compile(loss = "categorical_crossentropy", optimizer = Adam(lr=1e-3), metrics = ["accuracy"])
     meta.fit(X_train_meta, y_train_meta,validation_data = (X_val_meta, y_val_meta), batch_size =32, verbose =2, epochs=15, 
-            class_weight=compute_class_weight(class_weight='balanced', classes=[0,1,2], y=np.argmax(y_train_meta, axis=1)))
+            class_weight=compute_class_weight(class_weight='balanced', classes=[0,1,2], y=np.argmax(y_train_meta, axis=1)),
+            callbacks = [tf.keras.callbacks.ModelCheckpoint(
+                        filepath="../trained_models/meta-model_checkpoint.h5",
+                        save_weights_only=True,
+                        monitor='val_loss',
+                        mode='min',
+                        save_best_only=True)])
 
     predict_y_val = np.argmax(meta.predict(X_val_meta), axis=1)
     predict_y_test = np.argmax(meta.predict(X_test_meta), axis=1)
@@ -255,6 +278,12 @@ def eval():
 
     print("Meta-model performance on test set", flush=True)
     print(classification_report(y_test_meta, predict_y_test, digits=6)) 
+
+    print("Meta-model performance on test (with_wise) set", flush=True)
+    print(classification_report(y_test_meta[with_wise_index_test], predict_y_test[with_wise_index_test], digits=6)) 
+
+    print("Meta-model performance on test (no_wise) set", flush=True)
+    print(classification_report(y_test_meta[no_wise_index_test], predict_y_test[no_wise_index_test], digits=6)) 
 
 
 
