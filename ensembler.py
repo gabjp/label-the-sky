@@ -167,7 +167,6 @@ def wil(val_x, val_y):
         ss = StandardScaler()
         ss.fit(X_train_meta[train_index, 0:6])
         train = ss.transform(X_train_meta[train_index,0:6])
-        test = ss.transform(X_train_meta[test_index,0:6])
         val = ss.transform(val_x)
 
         meta.compile(loss = "categorical_crossentropy", optimizer = Adam(lr=1e-3), metrics = ["accuracy"])
@@ -182,7 +181,8 @@ def wil(val_x, val_y):
 
         meta.load_weights("../trained_models/meta-model_checkpoint.h5")
         fid = [num for num in test_index if X_train_meta[num,6]==1]
-        run = classification_report(np.argmax(y_train_meta[fid], axis=1), np.argmax(meta.predict(X_train_meta[fid, 0:6]), axis=1), digits=6, target_names=target_names, output_dict=True)
+        test = ss.transform(X_train_meta[test_index,0:6])
+        run = classification_report(np.argmax(y_train_meta[fid], axis=1), np.argmax(meta.predict(test), axis=1), digits=6, target_names=target_names, output_dict=True)
         META_values.append(run)
 
         print(META_values)
