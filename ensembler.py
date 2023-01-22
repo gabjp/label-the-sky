@@ -138,7 +138,7 @@ def wil(val_x, val_y):
 
     skf = StratifiedKFold(n_splits=5, shuffle=False)
     split_csv = skf.split(X_train_csv, y_train_csv)
-    split_meta = skf.split(X_train_meta, y_train_meta)
+    split_meta = skf.split(X_train_meta, np.argmax(y_train_meta, axis=1))
 
     RF_values = []
     META_values = []
@@ -151,6 +151,8 @@ def wil(val_x, val_y):
         fid = [num for num in test_index if X_train_csv[num,-1]==99]
         run = classification_report(y_train_csv[fid], rf.predict(X_train_csv[fid, 0:16]), digits=6, target_names=target_names, output_dict=True)
         RF_values.append(run)
+
+    print(RF_values)
 
     for i, (train_index, test_index) in enumerate(split_meta):
         print(f"meta fold {i}", flush=True)
@@ -182,7 +184,6 @@ def wil(val_x, val_y):
         run = classification_report(y_train_meta[fid], np.argmax(meta.predict(X_train_meta[fid, 0:6])), digits=6, target_names=target_names, output_dict=True)
         META_values.append(run)
 
-        print(RF_values)
         print(META_values)
 
     
