@@ -161,7 +161,7 @@ def wil(val_x, val_y):
         meta.add(keras.layers.Dense(3, activation = "softmax"))
 
         ss = StandardScaler()
-        ss.fit(X_train_meta[train_index])
+        ss.fit(X_train_meta[train_index, 0:6])
         train = ss.transform(X_train_meta[train_index,0:6])
         test = ss.transform(X_train_meta[test_index,0:6])
         val = ss.transform(val_x)
