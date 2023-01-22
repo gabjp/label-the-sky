@@ -72,11 +72,6 @@ X_test_12ch, y_test_12ch = (np.load(f"../data/{dataset}_12_X_test.npy"), np.load
 
 print("Finished loading image data", flush=True)
 
-#Load 3ch image data
-#X_train_3ch, y_train_3ch = (np.load(f"../data/{dataset}_3_X_train.npy"), np.load(f"../data/{dataset}_3_y_train.npy"))
-#X_val_3ch, y_val_3ch = (np.load(f"../data/{dataset}_3_X_val.npy"), np.load(f"../data/{dataset}_3_y_val.npy"))
-#X_test_3ch, y_test_3ch = (np.load(f"../data/{dataset}_3_X_test.npy"), np.load(f"../data/{dataset}_3_y_test.npy"))
-
 print("Finished loading data", flush=True)
 
 set_random_seeds()
@@ -132,21 +127,11 @@ def gen():
 
 def wil(val_x, val_y):
 
-    scoring = {
-    'Precision_QSO': make_scorer(precision_score, average=None, labels=[0]),
-    'Recall_QSO': make_scorer(recall_score, average=None, labels=[0]),
-    'f1_QSO': make_scorer(f1_score, average=None, labels=[0]),
-    'Precision_STAR': make_scorer(precision_score, average=None, labels=[1]),
-    'Recall_STAR': make_scorer(recall_score, average=None, labels=[1]),
-    'f1_STAR': make_scorer(f1_score, average=None, labels=[1]),
-    'Precision_GAL': make_scorer(precision_score, average=None, labels=[2]),
-    'Recall_GAL': make_scorer(recall_score, average=None, labels=[2]),
-    'f1_GAL': make_scorer(f1_score, average=None, labels=[2]),
-    'f1_macro': make_scorer(f1_score, average='macro')
-}
 
     X_train_meta = np.load("../data/meta_features.npy")
     y_train_meta = np.load("../data/meta_target.npy").ravel()
+
+    X_train_csv, y_train_csv = (train_csv[_morph+_feat], train_csv["target"])
 
     X_train_csv = X_train_csv.values
 
