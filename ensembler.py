@@ -132,6 +132,7 @@ def wil(val_x, val_y):
     y_train_meta = np.load("../data/meta_target.npy").ravel()
 
     X_train_csv, y_train_csv = (train_csv[_morph+_feat], train_csv["target"])
+    y_train_meta = keras.utils.to_categorical(y_train_meta, num_classes=3)
 
     X_train_csv = X_train_csv.values
 
@@ -168,7 +169,7 @@ def wil(val_x, val_y):
 
         meta.compile(loss = "categorical_crossentropy", optimizer = Adam(lr=1e-3), metrics = ["accuracy"])
         meta.fit(train, y_train_meta[train_index],validation_data = (val, val_y), batch_size =32, verbose =2, epochs=15, 
-                class_weight=compute_class_weight(class_weight='balanced', classes=[0,1,2], y=y_train_meta[train_index]),
+                class_weight=compute_class_weight(class_weight='balanced', classes=[0,1,2], y=np.argmax(y_train_meta[train_index], axis=1)),
                 callbacks = [tf.keras.callbacks.ModelCheckpoint(
                             filepath="../trained_models/meta-model_checkpoint.h5",
                             save_weights_only=True,
