@@ -133,6 +133,7 @@ def wil(val_x, val_y):
 
     X_train_csv, y_train_csv = (train_csv[_morph+_feat], train_csv["target"])
     y_train_meta = keras.utils.to_categorical(y_train_meta, num_classes=3)
+    val_y = keras.utils.to_categorical(val_y, num_classes=3)
 
     X_train_csv = X_train_csv.values
 
