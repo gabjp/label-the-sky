@@ -181,7 +181,7 @@ def wil(val_x, val_y):
 
         meta.load_weights("../trained_models/meta-model_checkpoint.h5")
         fid = [num for num in test_index if X_train_meta[num,6]==1]
-        test = ss.transform(X_train_meta[test_index,0:6])
+        test = ss.transform(X_train_meta[fid,0:6])
         run = classification_report(np.argmax(y_train_meta[fid], axis=1), np.argmax(meta.predict(test), axis=1), digits=6, target_names=target_names, output_dict=True)
         META_values.append(run)
 
