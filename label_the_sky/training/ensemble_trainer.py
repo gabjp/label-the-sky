@@ -11,6 +11,9 @@ CLASSES = ["GALAXY", "STAR", "QSO"]
 BASE_DIR = os.environ['HOME']
 CHECKPOINT_PATH = os.path.join(BASE_DIR,"/trained_models/meta-model_checkpoint.h5")
 
+def print_classification_report(true,pred):
+    print(classification_report(true, pred, digits=6, target_names=CLASSES))
+
 def print_wise_report(y_val, pred_val, with_wise_index_val, no_wise_index_val, y_test, pred_test, with_wise_index_test, no_wise_index_test, m_name="", trainer=None):
     """
     If trainer != None, pred_(val/test) should receive X (feature values). The trainer will generate the predictions.
@@ -20,7 +23,7 @@ def print_wise_report(y_val, pred_val, with_wise_index_val, no_wise_index_val, y
     if trainer != None:
         report  = trainer.evaluate
     else:
-        report = lambda true, pred: print(classification_report(true, pred, digits=6, target_names=CLASSES))
+        report = print_classification_report
 
     print(f"{m_name} performance on validation set", flush=True)
     report(y_val, pred_val)
