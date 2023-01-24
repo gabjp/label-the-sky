@@ -257,6 +257,6 @@ if __name__=="__main__":
     if "g" in sys.argv[2]:
         gen()
     if "e" in sys.argv[2]:
-        X_val,y_val = eval()
+        eval()
     if "w" in sys.argv[2]:
         wil(X_val, y_val)
