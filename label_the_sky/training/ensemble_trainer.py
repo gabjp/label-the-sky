@@ -11,7 +11,7 @@ CLASSES = ["GALAXY", "STAR", "QSO"]
 BASE_DIR = os.environ['HOME']
 CHECKPOINT_PATH = os.path.join(BASE_DIR,"/trained_models/meta-model_checkpoint.h5")
 
-def print_classification_report(true,pred):
+def print_classification_report(pred,true):
     print(classification_report(true, pred, digits=6, target_names=CLASSES))
 
 def print_wise_report(y_val, pred_val, with_wise_index_val, no_wise_index_val, y_test, pred_test, with_wise_index_test, no_wise_index_test, m_name="", trainer=None):
@@ -26,22 +26,22 @@ def print_wise_report(y_val, pred_val, with_wise_index_val, no_wise_index_val, y
         report = print_classification_report
 
     print(f"{m_name} performance on validation set", flush=True)
-    report(y_val, pred_val)
+    report(pred_val, y_val)
 
     print(f"{m_name} performance on validation (with_wise) set")
-    report(y_val[with_wise_index_val], pred_val[with_wise_index_val])
+    report(pred_val[with_wise_index_val], y_val[with_wise_index_val])
 
     print(f"{m_name} performance on validation (no_wise) set")
-    report(y_val[no_wise_index_val], pred_val[no_wise_index_val])
+    report(pred_val[no_wise_index_val], y_val[no_wise_index_val])
 
     print(f"{m_name} performance on test set", flush=True)
-    report(y_test, pred_test)
+    report(pred_test, y_test)
 
     print(f"{m_name} performance on test (with_wise) set", flush=True)
-    report(y_test[with_wise_index_test], pred_test[with_wise_index_test])
+    report(pred_test[with_wise_index_test], y_test[with_wise_index_test])
 
     print(f"{m_name} performance on test (no_wise) set", flush=True)
-    report(y_test[no_wise_index_test], pred_test[no_wise_index_test])
+    report(pred_test[no_wise_index_test], y_test[no_wise_index_test])
 
 class MetaTrainer:
     def __init__(self):
