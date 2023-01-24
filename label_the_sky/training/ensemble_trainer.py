@@ -35,7 +35,7 @@ def print_wise_report(y_val, pred_val, with_wise_index_val, no_wise_index_val, y
     report(y_val[no_wise_index_val], pred_val[no_wise_index_val])
 
     print(f"{m_name} performance on test set", flush=True)
-    report(y_test, pred_test, digits=6)
+    report(y_test, pred_test)
 
     print(f"{m_name} performance on test (with_wise) set", flush=True)
     report(y_test[with_wise_index_test], pred_test[with_wise_index_test])
