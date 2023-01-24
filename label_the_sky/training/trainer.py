@@ -47,7 +47,7 @@ PREPROCESSING_FN = {
 }
 
 
-def compute_metrics(y_pred, y_true, target='class', onehot=True):
+def compute_metrics(y_pred, y_true, target='class', onehot=True, print_cm=True):
     if target not in OUTPUT_TYPES:
         raise ValueError('target should be one of %s, but %s was given' % (
             OUTPUT_TYPES, target))
@@ -62,11 +62,13 @@ def compute_metrics(y_pred, y_true, target='class', onehot=True):
         print(y_true.shape)
         print(classification_report(
             y_true_arg, y_pred_arg, target_names=CLASS_NAMES, digits=4))
-        cm = confusion_matrix(y_true_arg, y_pred_arg)
-        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
-        cm = np.round(cm, 2)
-        print('confusion matrix')
-        print(cm)
+
+        if print_cm:
+            cm = confusion_matrix(y_true_arg, y_pred_arg)
+            cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+            cm = np.round(cm, 2)
+            print('confusion matrix')
+            print(cm)
     elif target in ['magnitudes', 'mockedmagnitudes']:
         err_abs = np.absolute(y_true-y_pred)
         df = pd.DataFrame(err_abs)

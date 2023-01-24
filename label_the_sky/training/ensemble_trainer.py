@@ -21,9 +21,9 @@ def print_wise_report(y_val, pred_val, with_wise_index_val, no_wise_index_val, y
     """
     
     if trainer != None:
-        report  = trainer.evaluate
+        report  = lambda X, y: trainer.evaluate(X, y, print_cm=False)
     else:
-        report = print_classification_report
+        report = lambda pred, true: print(classification_report(true, pred, digits=6, target_names=CLASSES))
 
     print(f"{m_name} performance on validation set", flush=True)
     report(pred_val, y_val)
