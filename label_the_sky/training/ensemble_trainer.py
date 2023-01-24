@@ -9,6 +9,7 @@ from sklearn.preprocessing import StandardScaler
 
 CLASSES = ["GALAXY", "STAR", "QSO"]
 CHECKPOINT_PATH = os.path.join(os.environ['HOME'], "trained_models", "meta-model_checkpoint.h5")
+print(CHECKPOINT_PATH)
 
 def print_classification_report(pred,true):
     print(classification_report(true, pred, digits=6, target_names=CLASSES))
