@@ -1,7 +1,6 @@
 from label_the_sky.training.trainer import Trainer, set_random_seeds
 from sklearn.model_selection import StratifiedKFold, RandomizedSearchCV, cross_validate
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import  LogisticRegression
 import sys
 import pandas as pd
 import numpy as np
@@ -10,12 +9,11 @@ from scipy.stats import loguniform
 from sklearn.metrics import classification_report
 from sklearn.svm import SVC
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import confusion_matrix, make_scorer, accuracy_score, precision_score, recall_score, f1_score
-from scipy.stats import wilcoxon
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.optimizers import Adam
 from sklearn.utils.class_weight import compute_class_weight
+from training.ensemble_trainer import print_wise_report, MetaTrainer
 
 base_dir = os.environ['HOME']
 CLASS_MAP = {0:2,1:1,2:0} # 0 - Galaxy, 1 - Star, 2 - Quasar
@@ -205,24 +203,10 @@ def eval():
 
     RF_pred_val = rf.predict(X_val_csv)
     RF_pred_test = rf.predict(X_test_csv)
-    print("RF performance on validation set", flush=True)
-    print(classification_report(y_val_csv, RF_pred_val, digits=6, target_names=target_names))
 
-    print("RF performance on validation (with_wise) set")
-    print(classification_report(y_val_csv[with_wise_index_val], RF_pred_val[with_wise_index_val], digits=6, target_names=target_names))
-
-    print("RF performance on validation (no_wise) set")
-    print(classification_report(y_val_csv[no_wise_index_val], RF_pred_val[no_wise_index_val], digits=6, target_names=target_names))
-
-    print("RF performance on test set", flush=True)
-    print(classification_report(y_test_csv, RF_pred_test, digits=6, target_names=target_names))
-
-    print("RF performance on test (with_wise) set", flush=True)
-    print(classification_report(y_test_csv[with_wise_index_test], RF_pred_test[with_wise_index_test], digits=6, target_names=target_names))
-
-    print("RF performance on test (no_wise) set", flush=True)
-    print(classification_report(y_test_csv[no_wise_index_test], RF_pred_test[no_wise_index_test], digits=6, target_names=target_names))
-
+    print_wise_report(y_val_csv, RF_pred_val, with_wise_index_val, no_wise_index_val,
+                      y_test_csv, RF_pred_test, with_wise_index_test, no_wise_index_test,
+                       m_name="RF")
 
     RF_proba_val = rf.predict_proba(X_val_csv)
     RF_proba_test = rf.predict_proba(X_test_csv)
@@ -239,23 +223,10 @@ def eval():
         model_name=f'0301_vgg_12_unl_w99_clf_ft1_full',
         l2 = 0.0007 
     )
-    print("CNN performane on validation set", flush=True)
-    trainer.evaluate(X_val_12ch, y_val_12ch)
 
-    print("CNN performane on validation (with_wise) set", flush=True)
-    trainer.evaluate(X_val_12ch[with_wise_index_val], y_val_12ch[with_wise_index_val])
-
-    print("CNN performane on validation (no_wise) set ", flush=True)
-    trainer.evaluate(X_val_12ch[no_wise_index_val], y_val_12ch[no_wise_index_val])
-
-    print("CNN performance on test set")
-    trainer.evaluate(X_test_12ch, y_test_12ch)
-
-    print("CNN performance on test (with_wise) set")
-    trainer.evaluate(X_test_12ch[with_wise_index_test], y_test_12ch[with_wise_index_test])
-
-    print("CNN performance on test (no_wise) set")
-    trainer.evaluate(X_test_12ch[no_wise_index_test], y_test_12ch[no_wise_index_test])
+    print_wise_report(y_val_12ch, X_val_12ch, with_wise_index_val, no_wise_index_val,
+                      y_test_12ch, X_test_12ch, with_wise_index_test, no_wise_index_test,
+                       m_name="CNN", trainer=trainer)
 
     CNN12_proba_val = trainer.predict(X_val_12ch)
     CNN12_proba_test = trainer.predict(X_test_12ch)
@@ -263,60 +234,21 @@ def eval():
     X_val_meta = np.concatenate((CNN12_proba_val, RF_proba_val), axis=1)
     X_test_meta = np.concatenate((CNN12_proba_test, RF_proba_test), axis=1)
     y_val_meta = y_val_12ch
-    y_test_meta = y_test_12ch
-    
+    y_test_meta = y_test_12ch   
 
     print("Starting meta-model evaluation", flush=True)
-    meta = keras.models.Sequential()
-    meta.add(keras.layers.Input(shape=(6,)))
-    meta.add(keras.layers.Dense(300, activation = "relu"))
-    meta.add(keras.layers.Dense(100, activation = "relu"))
-    meta.add(keras.layers.Dense(3, activation = "softmax"))
+    meta = MetaTrainer()
+    meta.fit(X_train_meta, y_train_meta, X_val_meta, y_val_meta)
 
-    untransformed_Xval_meta = X_val_meta  # APENAS PARA O TESTE DE WILCOXON. TIRAR ISSO E O RETURN
-
-    ss = StandardScaler()
-    ss.fit(X_train_meta)
-    X_train_meta = ss.transform(X_train_meta)
-    X_val_meta = ss.transform(X_val_meta)
-    X_test_meta = ss.transform(X_test_meta)
-
-    meta.compile(loss = "categorical_crossentropy", optimizer = Adam(lr=1e-3), metrics = ["accuracy"])
-    meta.fit(X_train_meta, y_train_meta,validation_data = (X_val_meta, y_val_meta), batch_size =32, verbose =2, epochs=30, 
-            class_weight=compute_class_weight(class_weight='balanced', classes=[0,1,2], y=np.argmax(y_train_meta, axis=1)),
-            callbacks = [tf.keras.callbacks.ModelCheckpoint(
-                        filepath="../trained_models/meta-model_checkpoint.h5",
-                        save_weights_only=True,
-                        monitor='val_loss',
-                        mode='min',
-                        save_best_only=True)])
-
-    meta.load_weights("../trained_models/meta-model_checkpoint.h5")
-
-    predict_y_val = np.argmax(meta.predict(X_val_meta), axis=1)
-    predict_y_test = np.argmax(meta.predict(X_test_meta), axis=1)
+    predict_y_val = np.argmax(meta.predict_proba(X_val_meta), axis=1)
+    predict_y_test = np.argmax(meta.predict_proba(X_test_meta), axis=1)
     y_val_meta = np.argmax(y_val_meta, axis=1)
     y_test_meta = np.argmax(y_test_meta, axis=1)
 
-    print("Meta-model performance on validation set", flush=True)
-    print(classification_report(y_val_meta, predict_y_val, digits=6, target_names=target_names))
+    print_wise_report(y_val_meta, predict_y_val, with_wise_index_val, no_wise_index_val,
+                      y_test_meta, predict_y_test, with_wise_index_test, no_wise_index_test,
+                       m_name="Meta-model")
 
-    print("Meta-model performance on validation (with_wise) set")
-    print(classification_report(y_val_csv[with_wise_index_val], predict_y_val[with_wise_index_val], digits=6, target_names=target_names))
-
-    print("Meta-model performance on validation (no_wise) set")
-    print(classification_report(y_val_csv[no_wise_index_val], predict_y_val[no_wise_index_val], digits=6, target_names=target_names))
-
-    print("Meta-model performance on test set", flush=True)
-    print(classification_report(y_test_meta, predict_y_test, digits=6, target_names=target_names)) 
-
-    print("Meta-model performance on test (with_wise) set", flush=True)
-    print(classification_report(y_test_meta[with_wise_index_test], predict_y_test[with_wise_index_test], digits=6, target_names=target_names)) 
-
-    print("Meta-model performance on test (no_wise) set", flush=True)
-    print(classification_report(y_test_meta[no_wise_index_test], predict_y_test[no_wise_index_test], digits=6, target_names=target_names)) 
-
-    return untransformed_Xval_meta, y_val_meta # Existe apenas para passar as features para o teste de wilcoxon
 
 
 

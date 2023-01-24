@@ -21,3 +21,4 @@ logs/*
 *.pyc
 *.svg
 *.txt
+.vscode
