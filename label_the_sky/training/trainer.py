@@ -587,7 +587,7 @@ class Trainer:
             json.dump(self.history, f)
         print('dumped history to', os.path.join(self.base_dir, history_dir, f'{self.model_name}.json'))
 
-    def evaluate(self, X, y):
+    def evaluate(self, X, y, print_cm=True):
         yp = self.preprocess_output(y)
         y_hat = []
         if self.backbone is not None:
@@ -599,7 +599,7 @@ class Trainer:
         else:
             print('no model to use on evaluation')
             return
-        compute_metrics(y_hat, yp, target=self.output_type)
+        compute_metrics(y_hat, yp, target=self.output_type, print_cm=print_cm)
 
     def predict(self, X):
         if self.backbone is not None:
