@@ -13,7 +13,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.optimizers import Adam
 from sklearn.utils.class_weight import compute_class_weight
-from training.ensemble_trainer import print_wise_report, MetaTrainer
+from label_the_sky.training.ensemble_trainer import print_wise_report, MetaTrainer
 
 base_dir = os.environ['HOME']
 CLASS_MAP = {0:2,1:1,2:0} # 0 - Galaxy, 1 - Star, 2 - Quasar
