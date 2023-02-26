@@ -18,8 +18,6 @@ from label_the_sky.training.ensemble_trainer import print_wise_report, MetaTrain
 base_dir = os.environ['HOME']
 CLASS_MAP = {0:2,1:1,2:0} # 0 - Galaxy, 1 - Star, 2 - Quasar
 
-target_names = ["GALAXY", "STAR", "QSO"]
-
 _morph = ['FWHM_n', 'A', 'B', 'KRON_RADIUS']
 _feat = ['u_iso',
              'J0378_iso',
@@ -69,8 +67,6 @@ X_val_12ch, y_val_12ch = (np.load(f"../data/{dataset}_12_X_val.npy"), np.load(f"
 X_test_12ch, y_test_12ch = (np.load(f"../data/{dataset}_12_X_test.npy"), np.load(f"../data/{dataset}_12_y_test.npy"))
 
 print("Finished loading image data", flush=True)
-
-print("Finished loading data", flush=True)
 
 set_random_seeds()
 
@@ -122,73 +118,6 @@ def gen():
     print("Saving meta-model trainig set", flush=True)
     np.save("../data/meta_features.npy",meta_features)
     np.save("../data/meta_target.npy",meta_target)
-
-def wil(val_x, val_y):
-
-
-    X_train_meta = np.load("../data/meta_features.npy")
-    y_train_meta = np.load("../data/meta_target.npy").ravel()
-
-    X_train_csv, y_train_csv = (train_csv[_morph+_feat], train_csv["target"])
-    y_train_meta = keras.utils.to_categorical(y_train_meta, num_classes=3)
-    val_y = keras.utils.to_categorical(val_y, num_classes=3)
-
-    X_train_csv = X_train_csv.values
-
-    skf = StratifiedKFold(n_splits=5, shuffle=False)
-    split_csv = skf.split(X_train_csv, y_train_csv)
-    split_meta = skf.split(X_train_meta, np.argmax(y_train_meta, axis=1))
-
-    RF_values = []
-    META_values = []
-
-
-    for i, (train_index, test_index) in enumerate(split_csv):
-        print(f"RF fold {i}", flush=True)
-        rf = RandomForestClassifier(random_state=2, n_estimators=100, bootstrap=False)
-        rf.fit(X_train_csv[train_index, 0:16], y=y_train_csv[train_index])
-        fid = [num for num in test_index if X_train_csv[num,-1]==99]
-        run = classification_report(y_train_csv[fid], rf.predict(X_train_csv[fid, 0:16]), digits=6, target_names=target_names, output_dict=True)
-        RF_values.append(run)
-
-    print(RF_values)
-
-    for i, (train_index, test_index) in enumerate(split_meta):
-        print(f"meta fold {i}", flush=True)
-
-        meta = keras.models.Sequential()
-        meta.add(keras.layers.Input(shape=(6,)))
-        meta.add(keras.layers.Dense(300, activation = "relu"))
-        meta.add(keras.layers.Dense(100, activation = "relu"))
-        meta.add(keras.layers.Dense(3, activation = "softmax"))
-
-        ss = StandardScaler()
-        ss.fit(X_train_meta[train_index, 0:6])
-        train = ss.transform(X_train_meta[train_index,0:6])
-        val = ss.transform(val_x)
-
-        meta.compile(loss = "categorical_crossentropy", optimizer = Adam(lr=1e-3), metrics = ["accuracy"])
-        meta.fit(train, y_train_meta[train_index],validation_data = (val, val_y), batch_size =32, verbose =2, epochs=15, 
-                class_weight=compute_class_weight(class_weight='balanced', classes=[0,1,2], y=np.argmax(y_train_meta[train_index], axis=1)),
-                callbacks = [tf.keras.callbacks.ModelCheckpoint(
-                            filepath="../trained_models/meta-model_checkpoint.h5",
-                            save_weights_only=True,
-                            monitor='val_loss',
-                            mode='min',
-                            save_best_only=True)])
-
-        meta.load_weights("../trained_models/meta-model_checkpoint.h5")
-        fid = [num for num in test_index if X_train_meta[num,6]==1]
-        test = ss.transform(X_train_meta[fid,0:6])
-        run = classification_report(np.argmax(y_train_meta[fid], axis=1), np.argmax(meta.predict(test), axis=1), digits=6, target_names=target_names, output_dict=True)
-        META_values.append(run)
-
-        print(META_values)
-
-    
-
-
-    
 
 
 def eval():
@@ -258,5 +187,3 @@ if __name__=="__main__":
         gen()
     if "e" in sys.argv[2]:
         eval()
-    if "w" in sys.argv[2]:
-        wil(X_val, y_val)
