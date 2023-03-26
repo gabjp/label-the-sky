@@ -6,4 +6,4 @@ CLASS_MAP = {2: 0, 1: 1, 0: 2, 'UNKNOWN': 3} # 0 in the df is QSO (which is 2 in
 # A solução adequada pra essa gambiarra é desfazzer a troca de classes que é feita aqui e fornecer para o programa de geração
 # de dados o csv com a codificaçao correta.
 
-config = yaml.load(open('config.yaml'), Loader=yaml.FullLoader)
+#config = yaml.load(open('config.yaml'), Loader=yaml.FullLoader)

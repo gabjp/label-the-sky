@@ -3,7 +3,7 @@ import os
 from label_the_sky.config import config
 from label_the_sky.postprocessing.table import agg_histories, print_history_latex, print_yhat
 from label_the_sky.training.trainer import MAG_MAX
-from label_the_sky.utils import glob_re
+from deprecated.ltsv1.utils import glob_re
 
 backbone = config['eval_backbone']
 timestamp = config['timestamp']

@@ -4,7 +4,7 @@ import pandas as pd
 
 from label_the_sky.config import BANDS
 from label_the_sky.training.trainer import MAG_MAX
-from label_the_sky.utils import get_channels_label
+from deprecated.ltsv1.utils import get_channels_label
 
 
 AGG_FN = {

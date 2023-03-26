@@ -10,7 +10,7 @@ import matplotlib.colors as colors
 import numpy as np
 import pandas as pd
 import os
-from utils import get_sets
+from deprecated.ltsv1.utils import get_sets
 
 
 matplotlib.rcParams.update({'font.size': 6})

@@ -7,7 +7,7 @@ from label_the_sky.config import config
 from label_the_sky.training.trainer import Trainer, set_random_seeds
 from label_the_sky.training.trainer import MAG_MAX
 from label_the_sky.postprocessing import plot as p
-from label_the_sky.utils import glob_re, get_dataset_label, get_channels_label, get_finetuning_suffix
+from deprecated.ltsv1.utils import glob_re, get_dataset_label, get_channels_label, get_finetuning_suffix
 
 
 def predict_unlabeled(base_dir, timestamp, backbone, n_channels, pretraining_dataset, split, dataset='unlabeled'):

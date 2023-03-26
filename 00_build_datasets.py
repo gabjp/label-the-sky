@@ -45,9 +45,9 @@ for split in ['train', 'val', 'test']:
     im_paths = [os.path.join(data_dir, i + ext) for i in ids]
     X = np.zeros((len(ids),) + (32, 32, n_channels), dtype=dtype)
     for i, path in enumerate(im_paths):
-        im_tmp =  read_fn(path) #(12,32,32)
-        if n_channels == 12: # Lazy fix to shape problem
-            X[i, :] = np.transpose(im_tmp, (1,2,0))        #(32,32,12)
+        im_tmp =  read_fn(path) 
+        if n_channels == 12: 
+            X[i, :] = im_tmp # If necessary transpose in this line
         else:
             X[i, :] = im_tmp[:,:,[0,1,2]] # Remove alpha
             

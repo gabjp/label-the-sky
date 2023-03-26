@@ -43,7 +43,7 @@ import sys
 import tensorflow as tf
 from time import time
 from umap import UMAP
-from utils import get_sets
+from deprecated.ltsv1.utils import get_sets
 import warnings
 
 
