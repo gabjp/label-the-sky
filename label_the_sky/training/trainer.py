@@ -297,7 +297,7 @@ class Trainer:
         x = LeakyReLU()(x)
 
         # top layer
-        y = Dropout(0.3)(x) # Changed from 0.5 to 0.3
+        y = Dropout(0.1)(x) # Changed from 0.5 to 0.1
         y = Dense(self.n_outputs, activation=self.activation)(y)
 
         self.top_layer_idx = -4
